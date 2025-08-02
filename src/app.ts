@@ -1,15 +1,17 @@
+import express from "express";
+import mongoose from "mongoose";
+import http from "http";
 import type { Request, Response, NextFunction } from "express";
 import { AppError } from "./AppError";
 import dotenv from "dotenv";
+import { logger } from "./logger";
+
+import userRoutes from "./routes/userRoutes";
+
 dotenv.config();
 
-const http = require("http");
-const mongoose = require("mongoose");
-const express = require("express");
-const userRoutes = require("./routes/userRoutes");
-
 const PORT = process.env.PORT || 3000;
-const dbURI = process.env.MONGODB_URI;
+const dbURI: string = process.env.MONGODB_URI ?? "";
 
 const app = express();
 
@@ -19,11 +21,12 @@ mongoose
   .connect(dbURI)
   .then(() => {
     server.listen(PORT, () => {
-      console.log(`Server started listening at PORT - ${PORT}`);
+      // console.log(`Server started listening at PORT - ${PORT}`);
+      logger.info(`Server started listening at PORT - ${PORT}`);
     });
   })
   .catch((error: Error) => {
-    console.log("Database connection error : ", error);
+    logger.error("Database connection error: ", error);
     process.exit(1); // Exit the process with failure
   });
 

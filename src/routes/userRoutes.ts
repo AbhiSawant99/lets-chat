@@ -5,4 +5,4 @@ const router = express.Router();
 
 router.post("/create", user_create_post);
 
-module.exports = router;
+export default router;
