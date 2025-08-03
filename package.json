@@ -22,10 +22,12 @@
     "@types/node": "^24.1.0",
     "@typescript-eslint/eslint-plugin": "^8.38.0",
     "@typescript-eslint/parser": "^8.38.0",
+    "bcrypt": "^6.0.0",
     "dotenv": "^17.2.1",
     "eslint": "^9.32.0",
     "express": "^5.1.0",
     "express-session": "^1.18.2",
+    "http-status": "^2.1.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.16.5",
     "passport": "^0.7.0",
@@ -34,6 +36,7 @@
     "winston": "^3.17.0"
   },
   "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
     "@types/express-session": "^1.18.2",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/passport": "^1.0.17",

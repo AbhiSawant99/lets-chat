@@ -12,6 +12,10 @@ import { AuthUser } from "./types/auth-user";
 
 import userRoutes from "./routes/user-routes";
 import { getUser, setUser, verifyJWT } from "./service/auth";
+import { createUser } from "./controller/user-controller";
+import { createUserService } from "./service/user-service";
+import { UserType } from "./model/user-model";
+import { googleUserSuccessfulLogin } from "./controller/user-oauth-controller";
 
 dotenv.config();
 
@@ -90,17 +94,7 @@ app.get(
 app.get(
   "/auth/google/callback",
   passport.authenticate("google", { failureRedirect: "/" }),
-  (req: Request, res: Response) => {
-    const user: AuthUser | undefined = req.user;
-
-    const token = user ? setUser(user) : null;
-
-    // res.json({ token });
-    res.cookie("uid", token, {
-      httpOnly: true,
-    });
-    res.redirect("/profile");
-  }
+  googleUserSuccessfulLogin
 );
 
 app.get("/profile", verifyJWT, (req: Request, res: Response) => {
@@ -124,7 +118,9 @@ app.get("/logout", (req: Request, res: Response) => {
   });
 });
 
-app.use(userRoutes);
+// app.use("/auth", userRoutes);
+
+app.use("/user", userRoutes);
 
 app.use((error: AppError, req: Request, res: Response, next: NextFunction) => {
   error.statusCode = error.statusCode || 500;

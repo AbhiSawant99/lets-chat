@@ -1,9 +1,11 @@
 import { Schema, Document, model } from "mongoose";
 
-export interface UserType extends Document {
+export interface UserType {
   name: string;
   email: string;
-  password: string;
+  password?: string;
+  oauthProvider: String;
+  oauthId: String;
 }
 
 const userSchema = new Schema(
@@ -17,10 +19,9 @@ const userSchema = new Schema(
       required: true,
       unique: true,
     },
-    password: {
-      type: String,
-      required: true,
-    },
+    password: String,
+    oauthProvider: String,
+    oauthId: String,
   },
   { timestamps: true }
 );
