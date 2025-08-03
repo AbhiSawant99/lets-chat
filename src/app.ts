@@ -11,6 +11,7 @@ import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import { AuthUser } from "./types/auth-user";
 
 import userRoutes from "./routes/user-routes";
+import { getUser, setUser, verifyJWT } from "./service/auth";
 
 dotenv.config();
 
@@ -18,6 +19,22 @@ const PORT = process.env.PORT || 3000;
 const dbURI: string = process.env.MONGODB_URI ?? "";
 
 const app = express();
+
+const server = http.createServer(app);
+
+mongoose
+  .connect(dbURI)
+  .then(() => {
+    server.listen(PORT, () => {
+      logger.info(`Server started listening at PORT - ${PORT}`);
+    });
+  })
+  .catch((error: Error) => {
+    logger.error("Database connection error: ", error);
+    process.exit(1); // Exit the process with failure
+  });
+
+app.use(express.json());
 
 app.use(
   session({
@@ -55,7 +72,12 @@ passport.deserializeUser((user: AuthUser, done) => {
 
 app.get("/", (req: Request, res: Response) => {
   //todo: this will go to UI later
-  res.send("<a href='/auth/google'>Login with Google</a>");
+
+  if (getUser(req?.cookies?.uid)) {
+    res.redirect("/profile");
+  } else {
+    res.send("<a href='/auth/google'>Login with Google</a>");
+  }
 });
 
 app.get(
@@ -69,11 +91,19 @@ app.get(
   "/auth/google/callback",
   passport.authenticate("google", { failureRedirect: "/" }),
   (req: Request, res: Response) => {
+    const user: AuthUser | undefined = req.user;
+
+    const token = user ? setUser(user) : null;
+
+    // res.json({ token });
+    res.cookie("uid", token, {
+      httpOnly: true,
+    });
     res.redirect("/profile");
   }
 );
 
-app.get("/profile", (req: Request, res: Response) => {
+app.get("/profile", verifyJWT, (req: Request, res: Response) => {
   const expressUser: AuthUser | undefined = req.user;
 
   if (!expressUser) {
@@ -93,22 +123,6 @@ app.get("/logout", (req: Request, res: Response) => {
     res.redirect("/");
   });
 });
-
-const server = http.createServer(app);
-
-mongoose
-  .connect(dbURI)
-  .then(() => {
-    server.listen(PORT, () => {
-      logger.info(`Server started listening at PORT - ${PORT}`);
-    });
-  })
-  .catch((error: Error) => {
-    logger.error("Database connection error: ", error);
-    process.exit(1); // Exit the process with failure
-  });
-
-app.use(express.json());
 
 app.use(userRoutes);
 
