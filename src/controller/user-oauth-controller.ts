@@ -1,10 +1,11 @@
 import { AppError } from "../AppError";
-import { setUser } from "../service/auth";
+import { setUser } from "../service/auth-service";
 import { createUserService } from "../service/user-service";
-import { AuthUser } from "../types/auth-user";
+import { AuthUser } from "../types/auth-user.types";
 import catchAsync from "../utils/catch-async";
 import type { Request, Response } from "express";
-import User, { UserType } from "../model/user-model";
+import { IUser } from "../types/user.types.";
+import { UserModel } from "../model/user-model";
 
 export const googleUserSuccessfulLogin = catchAsync(
   async (req: Request, res: Response) => {
@@ -14,10 +15,10 @@ export const googleUserSuccessfulLogin = catchAsync(
       throw new AppError("user not found");
     }
 
-    const existingUser = await User.findOne({ oauthId: user.id });
+    const existingUser = await UserModel.findOne({ oauthId: user.id });
 
     if (!existingUser) {
-      const newUser: UserType = {
+      const newUser: IUser = {
         name: user.displayName || "",
         email: user.emails?.[0].value || "",
         oauthProvider: "google",

@@ -8,14 +8,11 @@ import { logger } from "./logger";
 import session from "express-session";
 import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
-import { AuthUser } from "./types/auth-user";
+import { AuthUser } from "./types/auth-user.types";
 
-import userRoutes from "./routes/user-routes";
-import { getUser, setUser, verifyJWT } from "./service/auth";
-import { createUser } from "./controller/user-controller";
-import { createUserService } from "./service/user-service";
-import { UserType } from "./model/user-model";
+import { getUser, verifyJWT } from "./service/auth-service";
 import { googleUserSuccessfulLogin } from "./controller/user-oauth-controller";
+import authRoutes from "./routes/auth-routes";
 
 dotenv.config();
 
@@ -118,9 +115,7 @@ app.get("/logout", (req: Request, res: Response) => {
   });
 });
 
-// app.use("/auth", userRoutes);
-
-app.use("/user", userRoutes);
+app.use("/auth", authRoutes);
 
 app.use((error: AppError, req: Request, res: Response, next: NextFunction) => {
   error.statusCode = error.statusCode || 500;

@@ -1,13 +1,14 @@
 import { AppError } from "../AppError";
-import User, { UserType } from "../model/user-model";
 import httpStatus from "http-status";
 import bycrypt from "bcrypt";
+import { IUser } from "../types/user.types.";
+import { UserModel } from "../model/user-model";
 
-export const createUserService = async (requestUser: UserType) => {
+export const createUserService = async (requestUser: IUser) => {
   if (!requestUser.name || !requestUser.email) {
     throw new AppError("All fields are required", httpStatus.BAD_REQUEST);
   }
-  const existingUser = await User.findOne({ email: requestUser.email });
+  const existingUser = await UserModel.findOne({ email: requestUser.email });
 
   if (existingUser) {
     throw new AppError("User already exists", httpStatus.CONFLICT);
@@ -18,5 +19,5 @@ export const createUserService = async (requestUser: UserType) => {
     requestUser.password = hashedPassword;
   }
 
-  await User.create(requestUser);
+  await UserModel.create(requestUser);
 };

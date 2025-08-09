@@ -1,9 +1,12 @@
 import jwt from "jsonwebtoken";
-import { AuthUser } from "../types/auth-user";
+import { AuthRequestUser, AuthUser } from "../types/auth-user.types";
 import { logger } from "../logger";
 import type { Request, Response, NextFunction } from "express";
 import catchAsync from "../utils/catch-async";
 import { AppError } from "../AppError";
+import httpStatus from "http-status";
+import bycrypt from "bcrypt";
+import { UserModel } from "../model/user-model";
 
 export const setUser = (user: AuthUser) => {
   return jwt.sign(
@@ -47,3 +50,25 @@ export const verifyJWT = catchAsync(
     next();
   }
 );
+
+export const requestAuthService = async (loginData: AuthRequestUser) => {
+  const { email, password } = loginData;
+
+  const existingUser = await UserModel.findOne({ email: email });
+
+  if (!existingUser) {
+    throw new AppError(
+      "Username or password incorrect",
+      httpStatus.UNAUTHORIZED
+    );
+  }
+
+  const isMatch = await bycrypt.compare(password, existingUser.password || "");
+
+  if (!isMatch) {
+    throw new AppError(
+      "Username or password incorrect",
+      httpStatus.UNAUTHORIZED
+    );
+  }
+};
