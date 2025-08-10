@@ -6,6 +6,13 @@ import { requestAuthService } from "../service/auth-service";
 
 export const authLogin = catchAsync(async (req: Request, res: Response) => {
   const reqUser: AuthRequestUser = req.body;
-  await requestAuthService(reqUser);
-  res.status(httpStatus.CREATED).send(`login successful`);
+
+  const token = await requestAuthService(reqUser);
+
+  res.cookie("token", token, {
+    httpOnly: true,
+    secure: true,
+  });
+
+  res.status(httpStatus.OK).send(`login successful`);
 });

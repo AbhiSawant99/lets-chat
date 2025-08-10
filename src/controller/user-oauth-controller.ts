@@ -30,10 +30,10 @@ export const googleUserSuccessfulLogin = catchAsync(
 
     const token = user ? setUser(user) : null;
 
-    // res.json({ token });
-    res.cookie("uid", token, {
+    res.cookie("token", token, {
       httpOnly: true,
+      secure: true,
     });
-    res.redirect("/profile");
+    res.redirect("http://localhost:5173/profile");
   }
 );

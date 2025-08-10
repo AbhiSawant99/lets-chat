@@ -18,7 +18,7 @@ export const setUser = (user: AuthUser) => {
     },
     process.env.JWT_SECRET || "",
     {
-      expiresIn: "5min",
+      expiresIn: "1h",
     }
   );
 };
@@ -37,14 +37,14 @@ export const getUser = (token: string): AuthUser | null => {
 
 export const verifyJWT = catchAsync(
   (req: Request, res: Response, next: NextFunction) => {
-    const authHeader = req.headers.authorization;
-    logger.debug("Verifying JWT...", req);
+    const token = req.cookies?.token; // Get token from cookies
+    logger.debug("Verifying JWT...");
 
-    if (!authHeader) {
-      throw new AppError("No authorization header provided", 401);
+    if (!token) {
+      logger.warn("No token provided");
+      throw new AppError("Unauthorized user", httpStatus.UNAUTHORIZED);
     }
 
-    const token = authHeader.split(" ")[1];
     const decoded = jwt.verify(token, process.env.JWT_SECRET || "") as AuthUser;
     req.user = decoded;
     next();
@@ -71,4 +71,13 @@ export const requestAuthService = async (loginData: AuthRequestUser) => {
       httpStatus.UNAUTHORIZED
     );
   }
+
+  const token = setUser({
+    id: existingUser._id.toString(),
+    displayName: existingUser.name,
+    emails: [{ value: existingUser.email }],
+    photos: [],
+  });
+
+  return token;
 };

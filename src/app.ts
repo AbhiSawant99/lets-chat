@@ -15,6 +15,7 @@ import { googleUserSuccessfulLogin } from "./controller/user-oauth-controller";
 import authRoutes from "./routes/auth-routes";
 import { Server } from "socket.io";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 
 dotenv.config();
 
@@ -40,7 +41,7 @@ mongoose
 
 app.use(
   cors({
-    origin: "http://localhost:3000", // Adjust this to your frontend URL
+    origin: "http://localhost:5173", // Adjust this to your frontend URL
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
     credentials: true, // Allow cookies to be sent
   })
@@ -58,6 +59,7 @@ app.use(
 
 app.use(passport.initialize());
 app.use(passport.session());
+app.use(cookieParser());
 
 passport.use(
   new GoogleStrategy(
@@ -83,12 +85,10 @@ passport.deserializeUser((user: AuthUser, done) => {
 });
 
 app.get("/", (req: Request, res: Response) => {
-  //todo: this will go to UI later
-
-  if (getUser(req?.cookies?.uid)) {
-    res.redirect("/profile");
+  if (getUser(req?.cookies?.token)) {
+    res.redirect("http://localhost:5173/profile");
   } else {
-    res.send("<a href='/auth/google'>Login with Google</a>");
+    res.redirect("http://localhost:5173/login");
   }
 });
 
@@ -106,23 +106,18 @@ app.get(
 );
 
 app.get("/profile", verifyJWT, (req: Request, res: Response) => {
-  const expressUser: AuthUser | undefined = req.user;
-
-  if (!expressUser) {
-    return res.status(401).send("Unauthorized");
-  }
-
-  res.send(`
-    <h1>Welcome ${expressUser.displayName}</h1><br />
-    <img src="${
-      expressUser.photos ? expressUser.photos[0].value : ""
-    }" alt="Profile Picture" /><br />
-    <a href="/logout">Logout</a>`);
+  res.send(req.user);
 });
 
 app.get("/logout", (req: Request, res: Response) => {
+  res.clearCookie("token", {
+    httpOnly: true,
+    secure: true,
+    sameSite: "strict",
+  });
+
   req.logOut(() => {
-    res.redirect("/");
+    res.redirect("http://localhost:5173/login");
   });
 });
 
