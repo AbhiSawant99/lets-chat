@@ -1,6 +1,6 @@
 import express from "express";
 import mongoose from "mongoose";
-import http from "http";
+import http, { METHODS } from "http";
 import type { Request, Response, NextFunction } from "express";
 import { AppError } from "./AppError";
 import dotenv from "dotenv";
@@ -13,6 +13,8 @@ import { AuthUser } from "./types/auth-user.types";
 import { getUser, verifyJWT } from "./service/auth-service";
 import { googleUserSuccessfulLogin } from "./controller/user-oauth-controller";
 import authRoutes from "./routes/auth-routes";
+import { Server } from "socket.io";
+import cors from "cors";
 
 dotenv.config();
 
@@ -22,6 +24,7 @@ const dbURI: string = process.env.MONGODB_URI ?? "";
 const app = express();
 
 const server = http.createServer(app);
+const io = new Server(server);
 
 mongoose
   .connect(dbURI)
@@ -34,6 +37,14 @@ mongoose
     logger.error("Database connection error: ", error);
     process.exit(1); // Exit the process with failure
   });
+
+app.use(
+  cors({
+    origin: "http://localhost:3000", // Adjust this to your frontend URL
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+    credentials: true, // Allow cookies to be sent
+  })
+);
 
 app.use(express.json());
 
@@ -116,6 +127,10 @@ app.get("/logout", (req: Request, res: Response) => {
 });
 
 app.use("/auth", authRoutes);
+
+io.on("connection", (socket) => {
+  logger.info("A user connected", socket.id);
+});
 
 app.use((error: AppError, req: Request, res: Response, next: NextFunction) => {
   error.statusCode = error.statusCode || 500;
