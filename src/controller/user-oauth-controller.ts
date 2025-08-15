@@ -4,8 +4,9 @@ import { createUserService } from "../service/user-service";
 import { AuthUser } from "../types/auth-user.types";
 import catchAsync from "../utils/catch-async";
 import type { Request, Response } from "express";
-import { IUser } from "../types/user.types.";
+import { IUser } from "../types/user.types";
 import { UserModel } from "../model/user-model";
+import httpStatus from "http-status";
 
 export const googleUserSuccessfulLogin = catchAsync(
   async (req: Request, res: Response) => {
@@ -34,6 +35,15 @@ export const googleUserSuccessfulLogin = catchAsync(
       httpOnly: true,
       secure: true,
     });
-    res.redirect("http://localhost:5173/profile");
+
+    res.status(httpStatus.OK).json({
+      message: "Login successful",
+      user: {
+        id: user.id,
+        displayName: user.displayName,
+        email: user.emails?.[0].value,
+        photos: user.photos || [],
+      },
+    });
   }
 );

@@ -1,4 +1,4 @@
-import jwt from "jsonwebtoken";
+import jwt, { JsonWebTokenError, TokenExpiredError } from "jsonwebtoken";
 import { AuthRequestUser, AuthUser } from "../types/auth-user.types";
 import { logger } from "../logger";
 import type { Request, Response, NextFunction } from "express";
@@ -45,9 +45,20 @@ export const verifyJWT = catchAsync(
       throw new AppError("Unauthorized user", httpStatus.UNAUTHORIZED);
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || "") as AuthUser;
-    req.user = decoded;
-    next();
+    try {
+      const decoded = jwt.verify(
+        token,
+        process.env.JWT_SECRET || ""
+      ) as AuthUser;
+      req.user = decoded;
+      next();
+    } catch (err: unknown) {
+      if (err instanceof TokenExpiredError) {
+        return next(new AppError("TokenExpired", httpStatus.UNAUTHORIZED));
+      }
+
+      return next(new AppError("AuthenticationError", httpStatus.UNAUTHORIZED));
+    }
   }
 );
 
@@ -72,12 +83,5 @@ export const requestAuthService = async (loginData: AuthRequestUser) => {
     );
   }
 
-  const token = setUser({
-    id: existingUser._id.toString(),
-    displayName: existingUser.name,
-    emails: [{ value: existingUser.email }],
-    photos: [],
-  });
-
-  return token;
+  return existingUser;
 };

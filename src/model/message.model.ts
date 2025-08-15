@@ -23,6 +23,12 @@ const messageSchema = new Schema<IMessage>(
       enum: ["text", "image", "file"],
       default: "text",
     },
+    receivers: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
     readBy: [
       {
         type: Schema.Types.ObjectId,

@@ -1,7 +1,7 @@
 import { AppError } from "../AppError";
 import httpStatus from "http-status";
 import bycrypt from "bcrypt";
-import { IUser } from "../types/user.types.";
+import { IUser } from "../types/user.types";
 import { UserModel } from "../model/user-model";
 
 export const createUserService = async (requestUser: IUser) => {
