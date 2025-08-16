@@ -1,7 +1,7 @@
 import { Schema, model, Types } from "mongoose";
-import { IChatRoom } from "../types/chat-room.types";
+import { IChatRoom, IGroupChat } from "../types/chat-room.types";
 
-const chatRoomSchema = new Schema<IChatRoom>(
+const groupChatSchema = new Schema<IGroupChat>(
   {
     name: {
       type: String,
@@ -35,4 +35,4 @@ const chatRoomSchema = new Schema<IChatRoom>(
   { timestamps: true }
 );
 
-export const ChatRoomModel = model<IChatRoom>("ChatRoom", chatRoomSchema);
+export const GroupChatModel = model<IGroupChat>("GroupChat", groupChatSchema);

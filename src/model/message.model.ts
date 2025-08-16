@@ -1,5 +1,5 @@
 import { Schema, model, Types } from "mongoose";
-import { IMessage } from "../types/message.types";
+import { IMessage, messageStatus } from "../types/message.types";
 
 const messageSchema = new Schema<IMessage>(
   {
@@ -18,21 +18,24 @@ const messageSchema = new Schema<IMessage>(
       trim: true,
       required: true,
     },
-    messageType: {
+    attachments: {
       type: String,
-      enum: ["text", "image", "file"],
-      default: "text",
     },
-    receivers: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: "User",
-      },
-    ],
+    status: {
+      type: String,
+      enum: messageStatus,
+      default: "sent",
+    },
     readBy: [
       {
-        type: Schema.Types.ObjectId,
-        ref: "User",
+        user: {
+          type: Schema.Types.ObjectId,
+          ref: "User",
+        },
+        status: {
+          type: String,
+          enum: ["sent", "seen"],
+        },
       },
     ],
   },

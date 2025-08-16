@@ -1,7 +1,10 @@
 import cookieParser from "cookie-parser";
 import { NextFunction } from "express";
 import { DefaultEventsMap, ExtendedError, Socket } from "socket.io";
-import jwt from "jsonwebtoken";
+import jwt, { TokenExpiredError } from "jsonwebtoken";
+import { AppError } from "../AppError";
+import httpStatus from "http-status";
+import { logger } from "../logger";
 
 export const webSocketMiddleware = (
   socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>,
@@ -12,16 +15,17 @@ export const webSocketMiddleware = (
   const req: any = { headers: { cookie: socket.request.headers.cookie } };
   const res: any = {};
 
-  // Run cookie-parser on them
   parseCookie(req, res, (err: any) => {
     if (err) {
-      return next(new Error("Failed to parse cookies"));
+      return next(
+        new AppError("Failed to parse cookies", httpStatus.BAD_REQUEST)
+      );
     }
 
-    const token = req.cookies?.token; // <-- your cookie name
+    const token = req.cookies?.token;
 
     if (!token) {
-      return next(new Error("Token missing"));
+      return next(new AppError("Token missing", httpStatus.UNAUTHORIZED));
     }
 
     try {
@@ -30,8 +34,12 @@ export const webSocketMiddleware = (
       socket.data.username = decoded.displayName;
       socket.data.online = true;
       next();
-    } catch (e) {
-      next(new Error("Authentication failed"));
+    } catch (err) {
+      if (err instanceof TokenExpiredError) {
+        logger.error(`Token Expired - ${token}`);
+        return next(new AppError("TokenExpired", httpStatus.UNAUTHORIZED));
+      }
+      next(new AppError("Authentication failed", httpStatus.UNAUTHORIZED));
     }
   });
 };

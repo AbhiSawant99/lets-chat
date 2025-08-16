@@ -65,3 +65,20 @@ export const authLogout = catchAsync(async (req: Request, res: Response) => {
     message: "Logout successful",
   });
 });
+
+export const getAuthUser = catchAsync(async (req: Request, res: Response) => {
+  const user: AuthUser | undefined = req.user;
+
+  if (!user) {
+    return;
+  }
+
+  res.status(httpStatus.OK).json({
+    user: {
+      id: user.id,
+      displayName: user.displayName,
+      email: user.emails?.[0].value,
+      photos: user.photos || [],
+    },
+  });
+});

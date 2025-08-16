@@ -1,8 +1,13 @@
 import { Server, Socket } from "socket.io";
 import { logger } from "../logger";
+import {
+  joinPrivateRoom,
+  privateMessageService,
+} from "../service/private-chat-service";
+import { disconnectSocketService } from "../service/disconnect-socket-service";
 const users: Record<string, string> = {};
 
-interface UserConnection {
+export interface UserConnection {
   userId: string;
   socketIds: string[];
   username: string;
@@ -44,10 +49,9 @@ export const socketController = (io: Server) => {
       logger.info(`${username} joined`);
     });
 
-    socket.on("join_room", (room: string) => {
-      socket.join(room);
-      logger.info(`${users[socket.id]} joined room: ${room}`);
-    });
+    socket.on("join_private_room", (room: string) =>
+      joinPrivateRoom(io, socket, room)
+    );
 
     socket.on("send_message", ({ room, message }) => {
       io.to(room).emit("receive_message", {
@@ -56,59 +60,11 @@ export const socketController = (io: Server) => {
       });
     });
 
-    socket.on("private_message", ({ toUserId, message }) => {
-      const toSocket = userConnections.get(toUserId);
+    socket.on("private_message", ({ toPrivateRoom, message }) =>
+      privateMessageService(io, socket, toPrivateRoom, message)
+    );
 
-      if (!toSocket) return;
-
-      const toSocketIds: string[] = toSocket ? toSocket?.socketIds : [];
-
-      const sender = userConnections.get(socket.data.userId);
-
-      const senderSocketIds: string[] = sender?.socketIds ?? [];
-
-      toSocketIds.forEach((toSocketId) => {
-        io.to(toSocketId).emit("receive_private_message", {
-          from: sender?.username,
-          message,
-        });
-      });
-
-      senderSocketIds.forEach((senderSocket) => {
-        io.to(senderSocket).emit("receive_private_message", {
-          from: "You",
-          message,
-        });
-      });
-    });
-
-    socket.on("disconnect", () => {
-      const connectedUser = userConnections.get(socket.data.userId);
-      if (!connectedUser) return;
-      const userCurrentSockets = user?.socketIds ?? [];
-      const filtered = userCurrentSockets.filter((id) => id !== socket.id);
-      if (filtered.length === 0) {
-        userConnections.set(socket.data.userId, {
-          userId: socket.data.userId,
-          socketIds: [],
-          username: socket.data.username,
-          online: false,
-        });
-      } else {
-        userConnections.set(socket.data.userId, {
-          userId: socket.data.userId,
-          socketIds: [...filtered],
-          username: socket.data.username,
-          online: true,
-        });
-      }
-      logger.info(
-        `${connectedUser.username} disconnected from socket - ${socket.id}`
-      );
-      socket.broadcast.emit("users", {
-        users: Array.from(userConnections.values()),
-      });
-    });
+    socket.on("disconnect", () => disconnectSocketService(socket));
 
     socket.onAny((event, ...args) => {
       console.log(event, args);
