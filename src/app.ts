@@ -5,21 +5,24 @@ import type { Request, Response, NextFunction } from "express";
 import { AppError } from "./AppError";
 import dotenv from "dotenv";
 import { logger } from "./logger";
-import session from "express-session";
+
 import passport from "passport";
-import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import { AuthUser } from "./types/auth-user.types";
 
 import { getUser, verifyJWT } from "./service/auth-service";
 import { googleUserSuccessfulLogin } from "./controller/user-oauth-controller";
 import authRoutes from "./routes/auth-routes";
-import cors from "cors";
+
 import cookieParser from "cookie-parser";
 import { initSocket } from "./service/socket-init-service";
 import { socketController } from "./controller/socket-controller";
 import chatRouter from "./routes/chat-routes";
-import jwt from "jsonwebtoken";
-import httpStatus from "http-status";
+import {
+  CORSMiddleware,
+  sessionMiddleware,
+} from "./middlewares/http-middleware";
+import { webSocketMiddleware } from "./middlewares/socket-middleware";
+import { googlePassportMiddleware } from "./middlewares/passport-middleware";
 
 dotenv.config();
 
@@ -44,42 +47,17 @@ mongoose
     process.exit(1); // Exit the process with failure
   });
 
-app.use(
-  cors({
-    origin: "http://localhost:5173", // Adjust this to your frontend URL
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
-    credentials: true, // Allow cookies to be sent
-  })
-);
+app.use(CORSMiddleware);
 
 app.use(express.json());
 
-app.use(
-  session({
-    secret: "secret",
-    resave: false,
-    saveUninitialized: true,
-  })
-);
+app.use(sessionMiddleware);
 
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(cookieParser());
 
-passport.use(
-  new GoogleStrategy(
-    {
-      clientID: process.env.GOOGLE_CLIENT_ID || "",
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
-      callbackURL: "http://localhost:3000/auth/google/callback",
-    },
-    (accessToken, refreshToken, profile, done) => {
-      //todo: Here you can save the user profile to your database if needed
-      //? For now, we will just return the profile
-      return done(null, profile);
-    }
-  )
-);
+passport.use(googlePassportMiddleware());
 
 passport.serializeUser((user, done) => {
   done(null, user);
@@ -118,35 +96,7 @@ app.use("/auth", authRoutes);
 
 app.use("/chat", chatRouter);
 
-io.use((socket, next) => {
-  const parseCookie = cookieParser();
-  // Build fake req/res objects for cookie-parser
-  const req: any = { headers: { cookie: socket.request.headers.cookie } };
-  const res: any = {};
-
-  // Run cookie-parser on them
-  parseCookie(req, res, (err: any) => {
-    if (err) {
-      return next(new Error("Failed to parse cookies"));
-    }
-
-    const token = req.cookies?.token; // <-- your cookie name
-
-    if (!token) {
-      return next(new Error("Token missing"));
-    }
-
-    try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET || "") as any;
-      socket.data.userId = decoded.id;
-      socket.data.username = decoded.displayName;
-      socket.data.online = true;
-      next();
-    } catch (e) {
-      next(new Error("Authentication failed"));
-    }
-  });
-});
+io.use(webSocketMiddleware);
 
 socketController(io);
 
