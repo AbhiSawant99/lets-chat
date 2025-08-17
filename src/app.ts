@@ -71,7 +71,7 @@ app.get("/", (req: Request, res: Response) => {
   if (getUser(req?.cookies?.token)) {
     res.redirect("http://localhost:5173/profile");
   } else {
-    res.redirect("http://localhost:5173/login");
+    res.redirect("http://localhost:5173");
   }
 });
 

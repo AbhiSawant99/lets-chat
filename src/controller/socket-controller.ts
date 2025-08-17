@@ -44,6 +44,14 @@ export const socketController = (io: Server) => {
       users: Array.from(userConnections.values()),
     });
 
+    socket.on("typing", ({ roomId, username }) => {
+      socket.to(roomId).emit("typing", username);
+    });
+
+    socket.on("stopTyping", ({ roomId, username }) => {
+      socket.to(roomId).emit("stopTyping", username);
+    });
+
     socket.on("join", (username: string) => {
       users[socket.id] = username;
       logger.info(`${username} joined`);

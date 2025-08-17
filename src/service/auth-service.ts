@@ -54,10 +54,10 @@ export const verifyJWT = catchAsync(
       next();
     } catch (err: unknown) {
       if (err instanceof TokenExpiredError) {
-        return next(new AppError("TokenExpired", httpStatus.UNAUTHORIZED));
+        next(new AppError("TokenExpired", httpStatus.UNAUTHORIZED));
       }
 
-      return next(new AppError("AuthenticationError", httpStatus.UNAUTHORIZED));
+      next(new AppError("AuthenticationError", httpStatus.UNAUTHORIZED));
     }
   }
 );

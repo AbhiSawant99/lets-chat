@@ -6,7 +6,6 @@ import catchAsync from "../utils/catch-async";
 import type { Request, Response } from "express";
 import { IUser } from "../types/user.types";
 import { UserModel } from "../model/user-model";
-import httpStatus from "http-status";
 
 export const googleUserSuccessfulLogin = catchAsync(
   async (req: Request, res: Response) => {
@@ -16,7 +15,7 @@ export const googleUserSuccessfulLogin = catchAsync(
       throw new AppError("user not found");
     }
 
-    const existingUser = await UserModel.findOne({ oauthId: user.id });
+    let existingUser = await UserModel.findOne({ oauthId: user.id });
 
     if (!existingUser) {
       const newUser: IUser = {
@@ -26,24 +25,21 @@ export const googleUserSuccessfulLogin = catchAsync(
         oauthId: user.id || "",
       };
 
-      createUserService(newUser);
+      existingUser = await createUserService(newUser);
     }
 
-    const token = user ? setUser(user) : null;
+    const token = setUser({
+      id: existingUser._id.toString(),
+      displayName: existingUser.name,
+      emails: [{ value: existingUser.email }],
+      photos: [],
+    });
 
     res.cookie("token", token, {
       httpOnly: true,
       secure: true,
     });
 
-    res.status(httpStatus.OK).json({
-      message: "Login successful",
-      user: {
-        id: user.id,
-        displayName: user.displayName,
-        email: user.emails?.[0].value,
-        photos: user.photos || [],
-      },
-    });
+    res.redirect("http://localhost:5173/chat");
   }
 );

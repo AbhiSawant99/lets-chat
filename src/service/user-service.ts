@@ -19,5 +19,5 @@ export const createUserService = async (requestUser: IUser) => {
     requestUser.password = hashedPassword;
   }
 
-  await UserModel.create(requestUser);
+  return await UserModel.create(requestUser);
 };

@@ -37,7 +37,7 @@ export const webSocketMiddleware = (
     } catch (err) {
       if (err instanceof TokenExpiredError) {
         logger.error(`Token Expired - ${token}`);
-        return next(new AppError("TokenExpired", httpStatus.UNAUTHORIZED));
+        next(new AppError("TokenExpired", httpStatus.UNAUTHORIZED));
       }
       next(new AppError("Authentication failed", httpStatus.UNAUTHORIZED));
     }

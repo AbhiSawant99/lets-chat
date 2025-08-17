@@ -7,6 +7,7 @@ import {
 import { PrivateChatModel } from "../model/private-chat-model";
 import { MessageModel } from "../model/message.model";
 import { IUser } from "../types/user.types";
+import { IMessage } from "../types/message.types";
 
 export const joinPrivateRoom = (io: IOServer, socket: Socket, room: string) => {
   const roomParts = room.split("_");
@@ -54,8 +55,11 @@ const createPrivateChatRoom = async (
     if (existingPrivateMessages) {
       const messages = existingPrivateMessages.map((messageData) => {
         return {
+          id: messageData._id,
           from: messageData.sender.name,
           message: messageData.content,
+          status: messageData.status,
+          createdAt: messageData.createdAt,
         };
       });
       socket.emit("chat_history", messages);
@@ -80,7 +84,7 @@ const removeSocketFromRooms = (io: IOServer, socket: Socket) => {
   }
 };
 
-export const privateMessageService = (
+export const privateMessageService = async (
   io: IOServer,
   socket: Socket,
   toPrivateRoom: string,
@@ -88,9 +92,16 @@ export const privateMessageService = (
 ) => {
   const sender = userConnections.get(socket.data.userId);
 
+  const savedMessage = await saveMessage(toPrivateRoom, message, sender);
+
+  if (!savedMessage) return;
+
   io.to(toPrivateRoom).emit("receive_private_message", {
+    id: savedMessage._id,
     from: sender?.username,
     message,
+    status: savedMessage.status,
+    createdAt: savedMessage.createdAt,
   });
 
   const receiverUserId = getReceiverFromPrivateRoom(
@@ -114,29 +125,39 @@ export const privateMessageService = (
   if (!isReceiverInRoom) {
     receiverSocketIds.forEach((toSocketId) => {
       io.to(toSocketId).emit("receive_private_notification", {
+        id: savedMessage._id,
         from: sender?.username,
         message,
+        status: savedMessage.status,
+        createdAt: savedMessage.createdAt,
       });
     });
   }
 
-  saveMessage(toPrivateRoom, message, sender);
+  await PrivateChatModel.findOneAndUpdate(
+    { roomString: toPrivateRoom },
+    {
+      lastMessage: savedMessage._id,
+    }
+  );
 };
 
 const saveMessage = async (
   toPrivateRoom: string,
   message: string,
   sender?: UserConnection
-) => {
+): Promise<IMessage | undefined> => {
   const chat = await PrivateChatModel.findOne({ roomString: toPrivateRoom });
 
   if (!chat || !sender) return;
 
-  MessageModel.create({
+  const savedMessage = await MessageModel.create({
     chatRoomId: chat.id,
     sender: sender.userId,
     content: message,
   });
+
+  return savedMessage;
 };
 
 function getReceiverFromPrivateRoom(roomId: string, senderId?: string) {
