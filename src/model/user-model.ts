@@ -15,12 +15,11 @@ const userSchema = new Schema<IUser>(
     username: {
       type: String,
       unique: true,
+      trim: true,
     },
-    photos: [
-      {
-        type: String,
-      },
-    ],
+    photo: {
+      type: String,
+    },
     password: String,
     oauthProvider: String,
     oauthId: String,

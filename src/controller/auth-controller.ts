@@ -82,3 +82,52 @@ export const getAuthUser = catchAsync(async (req: Request, res: Response) => {
     },
   });
 });
+
+export const saveUserName = catchAsync(async (req: Request, res: Response) => {
+  const user: AuthUser | undefined = req.user;
+  const { username } = req.body;
+
+  if (!user) {
+    return;
+  }
+
+  if (!username || typeof username !== "string") return;
+
+  const existingUser = await UserModel.findById(user.id);
+
+  if (existingUser) {
+    existingUser.username = username;
+    existingUser?.save();
+  }
+
+  res.status(httpStatus.OK).json({
+    user: {
+      id: user.id,
+      displayName: user.displayName,
+      email: user.emails?.[0].value,
+      photos: user.photos || [],
+    },
+  });
+});
+
+export const checkUserName = catchAsync(async (req: Request, res: Response) => {
+  try {
+    const { username } = req.query;
+
+    if (!username || typeof username !== "string") {
+      return res
+        .status(400)
+        .json({ available: false, message: "Username is required" });
+    }
+
+    const existingUser = await UserModel.findOne({ username: username });
+
+    if (existingUser) {
+      return res.json({ available: false, message: "Username already taken" });
+    }
+
+    return res.json({ available: true, message: "Username available" });
+  } catch (err) {
+    res.status(500).json({ available: false, message: "Server error" });
+  }
+});
