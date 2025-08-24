@@ -8,6 +8,7 @@ import { PrivateChatModel } from "../model/private-chat-model";
 import { MessageModel } from "../model/message.model";
 import { IUser } from "../types/user.types";
 import { IMessage } from "../types/message.types";
+import { IPrivateChat } from "../types/chat-room.types";
 
 export const joinPrivateRoom = (io: IOServer, socket: Socket, room: string) => {
   const roomParts = room.split("_");
@@ -26,25 +27,35 @@ export const joinPrivateRoom = (io: IOServer, socket: Socket, room: string) => {
       `${socket.data.username} id:${socket.data.userId} joined room: ${room}`
     );
 
-    createPrivateChatRoom(room, userId1, userId2, socket);
+    sendRoomDetails(room, socket);
   } else {
     logger.error(`user ${socket.data.userId} tried joining room ${room}`);
   }
 };
 
-const createPrivateChatRoom = async (
-  room: string,
-  userId1: string,
-  userId2: string,
-  socket: Socket
-): Promise<void> => {
+const createPrivateChatRoom = async (room: string) => {
+  const roomParts = room.split("_");
+
+  const userId1 = roomParts[1];
+  const userId2 = roomParts[2];
   const existingChatRoom = await PrivateChatModel.findOne({ roomString: room });
 
   if (!existingChatRoom) {
-    await PrivateChatModel.create({
+    const newChat = await PrivateChatModel.create({
       roomString: room,
       participants: [userId1, userId2],
     });
+    return newChat;
+  }
+
+  return existingChatRoom;
+};
+
+const sendRoomDetails = async (room: string, socket: Socket): Promise<void> => {
+  const existingChatRoom = await PrivateChatModel.findOne({ roomString: room });
+
+  if (!existingChatRoom) {
+    return;
   } else {
     const existingPrivateMessages = await MessageModel.find({
       chatRoomId: existingChatRoom.id,
@@ -95,6 +106,7 @@ export const privateMessageService = async (
   const savedMessage: IMessage | undefined = await saveMessage(
     toPrivateRoom,
     message,
+    socket,
     sender
   );
 
@@ -152,11 +164,20 @@ export const privateMessageService = async (
 const saveMessage = async (
   toPrivateRoom: string,
   message: string,
+  socket: Socket,
   sender?: UserConnection
 ): Promise<IMessage | undefined> => {
-  const chat = await PrivateChatModel.findOne({ roomString: toPrivateRoom });
+  if (!sender) return;
 
-  if (!chat || !sender) return;
+  let chat = await PrivateChatModel.findOne({ roomString: toPrivateRoom });
+
+  if (!chat) {
+    const newChat = await createPrivateChatRoom(toPrivateRoom);
+
+    chat = new PrivateChatModel(newChat);
+
+    emitChatCreated(chat, socket, sender);
+  }
 
   const savedMessage = await MessageModel.create({
     chatRoomId: chat.id,
@@ -165,6 +186,22 @@ const saveMessage = async (
   });
 
   return savedMessage;
+};
+
+const emitChatCreated = (
+  chat: IPrivateChat,
+  socket: Socket,
+  sender: UserConnection
+) => {
+  socket.emit("chat_created", {
+    id: chat.id,
+    roomId: chat.roomString,
+    lastMessage: undefined,
+    userId: sender.userId,
+    username: sender.username,
+    socketId: sender.socketIds,
+    online: sender.online,
+  });
 };
 
 function getReceiverFromPrivateRoom(roomId: string, senderId?: string) {

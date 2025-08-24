@@ -10,6 +10,7 @@ import {
 } from "../controller/socket-controller";
 import { UserModel } from "../model/user-model";
 import { IMessage } from "../types/message.types";
+import { getRoomId } from "../utils/chat-utils";
 
 export const getUserChatService = async (
   io: IOServer,
@@ -59,13 +60,14 @@ export const getUserChatService = async (
 
       return {
         id: chat._id,
-        roomString: chat.roomString,
+        roomId: chat.roomString,
         lastMessage: chat.lastMessage
           ? {
               id: chat.lastMessage._id,
               message: chat.lastMessage.content,
               createdAt: chat.lastMessage.createdAt,
               status: chat.lastMessage.status,
+              readBy: chat.lastMessage.readBy,
             }
           : undefined,
         userId: recipientConnectionDetails?.userId,
@@ -75,6 +77,30 @@ export const getUserChatService = async (
       };
     })
   );
+
+  if (privateChatsWithStatus.length === 0) {
+    let userFirstChatDetails = userConnections.get(user.userId);
+
+    if (!(userFirstChatDetails && userFirstChatDetails.userId)) return;
+
+    const userFirstChat = await PrivateChatModel.create({
+      roomString: getRoomId(
+        userFirstChatDetails.userId,
+        userFirstChatDetails.userId
+      ),
+      participants: [userFirstChatDetails.userId, userFirstChatDetails.userId],
+    });
+
+    privateChatsWithStatus.push({
+      id: userFirstChat.id,
+      roomId: userFirstChat.roomString,
+      userId: userFirstChatDetails.userId,
+      username: userFirstChatDetails?.username,
+      socketId: userFirstChatDetails?.socketIds,
+      online: userFirstChatDetails?.online,
+      lastMessage: undefined,
+    });
+  }
 
   const chats = [...privateChatsWithStatus, ...groupChats];
 

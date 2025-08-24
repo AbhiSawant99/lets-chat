@@ -1,6 +1,6 @@
-import { Types } from "mongoose";
+import { Document, Types } from "mongoose";
 
-export interface IChatRoom {
+export interface IChatRoom extends Document {
   participants: Types.ObjectId[];
   lastMessage?: Types.ObjectId;
 }
