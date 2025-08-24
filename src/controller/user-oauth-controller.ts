@@ -21,6 +21,7 @@ export const googleUserSuccessfulLogin = catchAsync(
       const newUser: IUser = {
         name: user.displayName || "",
         email: user.emails?.[0].value || "",
+        username: "",
         oauthProvider: "google",
         oauthId: user.id || "",
       };
@@ -40,6 +41,6 @@ export const googleUserSuccessfulLogin = catchAsync(
       secure: true,
     });
 
-    res.redirect("http://localhost:5173/chat");
+    res.redirect("http://localhost:5173/username-form");
   }
 );

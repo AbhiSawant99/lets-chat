@@ -17,6 +17,7 @@ export const googlePassportMiddleware = () => {
         const newUser: IUser = {
           name: profile.displayName || "",
           email: profile.emails?.[0].value || "",
+          username: "",
           oauthProvider: "google",
           oauthId: profile.id || "",
         };

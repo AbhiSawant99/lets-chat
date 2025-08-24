@@ -7,21 +7,19 @@ export interface IMessage {
   sender: Types.ObjectId;
   content: string;
   attachments?: string;
-  status?: messageStatus;
+  status: messageStatus;
   readBy?: Types.ObjectId[];
   createdAt: Date;
   updatedAt: Date;
 }
 
-export enum messageStatus {
-  "sent",
-  "seen",
-}
+export type messageStatus = "sent" | "seen";
 
 export interface responseMessage {
+  id: string;
   content: string;
   attachments?: string;
   status?: messageStatus;
   readBy?: Types.ObjectId[];
-  sender: IUser;
+  from: string;
 }

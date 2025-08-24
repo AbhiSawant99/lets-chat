@@ -1,4 +1,4 @@
-import jwt, { JsonWebTokenError, TokenExpiredError } from "jsonwebtoken";
+import jwt, { TokenExpiredError } from "jsonwebtoken";
 import { AuthRequestUser, AuthUser } from "../types/auth-user.types";
 import { logger } from "../logger";
 import type { Request, Response, NextFunction } from "express";

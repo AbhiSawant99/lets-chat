@@ -8,12 +8,7 @@ export const disconnectSocketService = (socket: Socket) => {
   const userCurrentSockets = connectedUser?.socketIds ?? [];
   const filtered = userCurrentSockets.filter((id) => id !== socket.id);
   if (filtered.length === 0) {
-    userConnections.set(socket.data.userId, {
-      userId: socket.data.userId,
-      socketIds: [],
-      username: socket.data.username,
-      online: false,
-    });
+    userConnections.delete(socket.data.userId);
   } else {
     userConnections.set(socket.data.userId, {
       userId: socket.data.userId,
@@ -25,7 +20,5 @@ export const disconnectSocketService = (socket: Socket) => {
   logger.info(
     `${connectedUser.username} disconnected from socket - ${socket.id}`
   );
-  socket.broadcast.emit("users", {
-    users: Array.from(userConnections.values()),
-  });
+  socket.broadcast.emit("online_users", Array.from(userConnections.keys()));
 };

@@ -23,19 +23,13 @@ const messageSchema = new Schema<IMessage>(
     },
     status: {
       type: String,
-      enum: messageStatus,
+      enum: ["sent", "seen"],
       default: "sent",
     },
     readBy: [
       {
-        user: {
-          type: Schema.Types.ObjectId,
-          ref: "User",
-        },
-        status: {
-          type: String,
-          enum: ["sent", "seen"],
-        },
+        type: Schema.Types.ObjectId,
+        ref: "User",
       },
     ],
   },

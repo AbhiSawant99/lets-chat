@@ -92,7 +92,11 @@ export const privateMessageService = async (
 ) => {
   const sender = userConnections.get(socket.data.userId);
 
-  const savedMessage = await saveMessage(toPrivateRoom, message, sender);
+  const savedMessage: IMessage | undefined = await saveMessage(
+    toPrivateRoom,
+    message,
+    sender
+  );
 
   if (!savedMessage) return;
 
@@ -102,6 +106,7 @@ export const privateMessageService = async (
     message,
     status: savedMessage.status,
     createdAt: savedMessage.createdAt,
+    readBy: savedMessage.readBy,
   });
 
   const receiverUserId = getReceiverFromPrivateRoom(
@@ -126,10 +131,12 @@ export const privateMessageService = async (
     receiverSocketIds.forEach((toSocketId) => {
       io.to(toSocketId).emit("receive_private_notification", {
         id: savedMessage._id,
+        chatId: savedMessage.chatRoomId,
         from: sender?.username,
         message,
         status: savedMessage.status,
         createdAt: savedMessage.createdAt,
+        readBy: savedMessage.readBy,
       });
     });
   }

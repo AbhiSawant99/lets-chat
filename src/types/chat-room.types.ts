@@ -6,9 +6,8 @@ export interface IChatRoom {
 }
 
 export interface IGroupChat extends IChatRoom {
-  name?: string;
-  isGroup: boolean;
-  admins?: Types.ObjectId[];
+  name: string;
+  admins: Types.ObjectId[];
 }
 
 export interface IPrivateChat extends IChatRoom {
