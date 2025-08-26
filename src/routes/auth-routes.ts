@@ -8,6 +8,7 @@ import {
 } from "../controller/auth-controller";
 import { createUser } from "../controller/user-controller";
 import { verifyJWT } from "../service/auth-service";
+import { upload } from "../utils/image-upload";
 
 const authRoutes = express.Router();
 
@@ -17,7 +18,12 @@ authRoutes.get("/user", verifyJWT, getAuthUser);
 
 authRoutes.post("/sign-up", createUser);
 
-authRoutes.post("/sign-final-step", verifyJWT, saveUserName);
+authRoutes.post(
+  "/sign-final-step",
+  verifyJWT,
+  upload.single("photo"),
+  saveUserName
+);
 
 authRoutes.post("/logout", verifyJWT, authLogout);
 

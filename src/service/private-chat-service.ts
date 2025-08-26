@@ -9,6 +9,7 @@ import { MessageModel } from "../model/message.model";
 import { IUser } from "../types/user.types";
 import { IMessage } from "../types/message.types";
 import { IPrivateChat } from "../types/chat-room.types";
+import { UserModel } from "../model/user-model";
 
 export const joinPrivateRoom = (io: IOServer, socket: Socket, room: string) => {
   const roomParts = room.split("_");
@@ -112,6 +113,13 @@ export const privateMessageService = async (
 
   if (!savedMessage) return;
 
+  await PrivateChatModel.findOneAndUpdate(
+    { roomString: toPrivateRoom },
+    {
+      lastMessage: savedMessage._id,
+    }
+  );
+
   io.to(toPrivateRoom).emit("receive_private_message", {
     id: savedMessage._id,
     from: sender?.username,
@@ -152,13 +160,6 @@ export const privateMessageService = async (
       });
     });
   }
-
-  await PrivateChatModel.findOneAndUpdate(
-    { roomString: toPrivateRoom },
-    {
-      lastMessage: savedMessage._id,
-    }
-  );
 };
 
 const saveMessage = async (
@@ -188,20 +189,28 @@ const saveMessage = async (
   return savedMessage;
 };
 
-const emitChatCreated = (
+const emitChatCreated = async (
   chat: IPrivateChat,
   socket: Socket,
   sender: UserConnection
 ) => {
-  socket.emit("chat_created", {
-    id: chat.id,
-    roomId: chat.roomString,
-    lastMessage: undefined,
-    userId: sender.userId,
-    username: sender.username,
-    socketId: sender.socketIds,
-    online: sender.online,
-  });
+  const receiverId = getReceiverFromPrivateRoom(chat.roomString);
+
+  if (!receiverId) return;
+
+  const receiverDetails = await UserModel.findById(receiverId);
+
+  if (receiverDetails) {
+    const receiverOnline = userConnections.get(receiverId)?.online;
+    socket.emit("chat_created", {
+      id: chat.id,
+      roomId: chat.roomString,
+      lastMessage: undefined,
+      userId: receiverDetails.id,
+      username: receiverDetails.name,
+      online: receiverOnline,
+    });
+  }
 };
 
 function getReceiverFromPrivateRoom(roomId: string, senderId?: string) {

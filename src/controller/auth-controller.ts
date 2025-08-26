@@ -6,6 +6,9 @@ import { requestAuthService, setUser } from "../service/auth-service";
 import { UserModel } from "../model/user-model";
 import { getIO } from "../service/socket-init-service";
 import { userConnections } from "./socket-controller";
+import { AppError } from "../AppError";
+import fs from "fs";
+import { saveLocalUpload } from "../utils/image-upload";
 
 export const authLogin = catchAsync(async (req: Request, res: Response) => {
   const reqUser: AuthRequestUser = req.body;
@@ -21,8 +24,8 @@ export const authLogin = catchAsync(async (req: Request, res: Response) => {
   const token = setUser({
     id: existingUser._id.toString(),
     displayName: existingUser.name,
-    emails: [{ value: existingUser.email }],
-    photos: [],
+    email: existingUser.email,
+    photo: existingUser.photo || "",
   });
 
   res.cookie("token", token, {
@@ -36,7 +39,7 @@ export const authLogin = catchAsync(async (req: Request, res: Response) => {
       id: existingUser.id,
       displayName: existingUser.name,
       email: existingUser.email,
-      photos: [],
+      photo: existingUser.photo || "",
     },
   });
 });
@@ -77,8 +80,8 @@ export const getAuthUser = catchAsync(async (req: Request, res: Response) => {
     user: {
       id: user.id,
       displayName: user.displayName,
-      email: user.emails?.[0].value,
-      photos: user.photos || [],
+      email: user.email,
+      photo: user.photo || "",
     },
   });
 });
@@ -88,26 +91,38 @@ export const saveUserName = catchAsync(async (req: Request, res: Response) => {
   const { username } = req.body;
 
   if (!user) {
-    return;
+    throw new AppError("usernot found", httpStatus.BAD_REQUEST);
   }
 
-  if (!username || typeof username !== "string") return;
+  if (!username) {
+    throw new AppError("username is required", httpStatus.BAD_REQUEST);
+  }
 
   const existingUser = await UserModel.findById(user.id);
 
-  if (existingUser) {
-    existingUser.username = username;
-    existingUser?.save();
-  }
+  try {
+    const photoUrl = saveLocalUpload(req.file);
+    if (existingUser) {
+      existingUser.username = username;
+      existingUser.photo = photoUrl ?? undefined;
+      existingUser?.save();
 
-  res.status(httpStatus.OK).json({
-    user: {
-      id: user.id,
-      displayName: user.displayName,
-      email: user.emails?.[0].value,
-      photos: user.photos || [],
-    },
-  });
+      res.status(httpStatus.OK).json({
+        user: {
+          id: user.id,
+          displayName: user.displayName,
+          email: user.email,
+          photo: photoUrl || "",
+        },
+      });
+    }
+  } catch (err) {
+    // cleanup orphan file
+    if (req.file) {
+      fs.unlinkSync(req.file.path);
+    }
+    throw new AppError("Could not save data", httpStatus.INTERNAL_SERVER_ERROR);
+  }
 });
 
 export const checkUserName = catchAsync(async (req: Request, res: Response) => {

@@ -2,8 +2,8 @@ export interface AuthUser extends Express.User {
   id?: string;
   displayName?: string;
   username?: string;
-  emails?: { value: string }[];
-  photos?: { value: string }[];
+  email?: string;
+  photo?: string;
 }
 
 export interface AuthRequestUser {

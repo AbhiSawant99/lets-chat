@@ -13,8 +13,8 @@ export const createUser = catchAsync(async (req: Request, res: Response) => {
   const token = setUser({
     id: existingUser._id.toString(),
     displayName: existingUser.name,
-    emails: [{ value: existingUser.email }],
-    photos: [],
+    email: existingUser.email,
+    photo: existingUser.photo || "",
   });
 
   res.cookie("token", token, {

@@ -50,6 +50,7 @@ mongoose
 app.use(CORSMiddleware);
 
 app.use(express.json());
+app.use("/uploads", express.static("uploads"));
 
 app.use(sessionMiddleware);
 

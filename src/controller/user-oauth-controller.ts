@@ -15,25 +15,17 @@ export const googleUserSuccessfulLogin = catchAsync(
       throw new AppError("user not found");
     }
 
-    let existingUser = await UserModel.findOne({ oauthId: user.id });
+    const existingUser = await UserModel.findOne({ oauthId: user.id });
 
     if (!existingUser) {
-      const newUser: IUser = {
-        name: user.displayName || "",
-        email: user.emails?.[0].value || "",
-        username: "",
-        oauthProvider: "google",
-        oauthId: user.id || "",
-      };
-
-      existingUser = await createUserService(newUser);
+      return;
     }
 
     const token = setUser({
       id: existingUser._id.toString(),
       displayName: existingUser.name,
-      emails: [{ value: existingUser.email }],
-      photos: [],
+      email: existingUser.email,
+      photo: existingUser.photo || "",
     });
 
     res.cookie("token", token, {
@@ -41,6 +33,10 @@ export const googleUserSuccessfulLogin = catchAsync(
       secure: true,
     });
 
-    res.redirect("http://localhost:5173/username-form");
+    if (existingUser.username) {
+      res.redirect("http://localhost:5173/chat");
+    } else {
+      res.redirect("http://localhost:5173/username-form");
+    }
   }
 );
