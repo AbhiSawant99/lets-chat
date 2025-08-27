@@ -1,6 +1,6 @@
 import { Socket } from "socket.io";
-import { userConnections } from "../controller/socket-controller";
-import { logger } from "../logger";
+import { userConnections } from "@/controller/socket-controller";
+import { logger } from "@/logger";
 
 export const disconnectSocketService = (socket: Socket) => {
   const connectedUser = userConnections.get(socket.data.userId);

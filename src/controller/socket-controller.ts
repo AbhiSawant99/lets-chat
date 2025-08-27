@@ -1,15 +1,15 @@
 import { Server, Socket } from "socket.io";
-import { logger } from "../logger";
+import { logger } from "@/logger";
 import {
   joinPrivateRoom,
   privateMessageService,
-} from "../service/private-chat-service";
-import { disconnectSocketService } from "../service/disconnect-socket-service";
-import { getUserChatService } from "../service/get-user-chat-service";
+} from "@/service/private-chat-service";
+import { disconnectSocketService } from "@/service/disconnect-socket-service";
+import { getUserChatService } from "@/service/get-user-chat-service";
 import {
   makeMessageSeen,
   maskHistoryMessageSeen,
-} from "../service/message-service";
+} from "@/service/message-service";
 const users: Record<string, string> = {};
 
 export interface UserConnection {

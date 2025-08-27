@@ -1,11 +1,9 @@
-import { AppError } from "../AppError";
-import { setUser } from "../service/auth-service";
-import { createUserService } from "../service/user-service";
-import { AuthUser } from "../types/auth-user.types";
-import catchAsync from "../utils/catch-async";
+import { AppError } from "@/AppError";
+import { setUser } from "@/service/auth-service";
+import { AuthUser } from "@/types/auth-user.types";
+import catchAsync from "@/utils/catch-async";
 import type { Request, Response } from "express";
-import { IUser } from "../types/user.types";
-import { UserModel } from "../model/user-model";
+import { UserModel } from "@/model/user-model";
 
 export const googleUserSuccessfulLogin = catchAsync(
   async (req: Request, res: Response) => {

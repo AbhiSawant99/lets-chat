@@ -1,12 +1,12 @@
 import jwt, { TokenExpiredError } from "jsonwebtoken";
-import { AuthRequestUser, AuthUser } from "../types/auth-user.types";
-import { logger } from "../logger";
+import { AuthRequestUser, AuthUser } from "@/types/auth-user.types";
+import { logger } from "@/logger";
 import type { Request, Response, NextFunction } from "express";
-import catchAsync from "../utils/catch-async";
-import { AppError } from "../AppError";
+import catchAsync from "@/utils/catch-async";
+import { AppError } from "@/AppError";
 import httpStatus from "http-status";
 import bycrypt from "bcrypt";
-import { UserModel } from "../model/user-model";
+import { UserModel } from "@/model/user-model";
 
 export const setUser = (user: AuthUser) => {
   return jwt.sign(

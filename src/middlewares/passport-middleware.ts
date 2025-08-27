@@ -1,8 +1,8 @@
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
-import { createUserService } from "../service/user-service";
-import { UserModel } from "../model/user-model";
-import { IUser } from "../types/user.types";
-import { downloadImage } from "../utils/download-image";
+import { createUserService } from "@/service/user-service";
+import { UserModel } from "@/model/user-model";
+import { IUser } from "@/types/user.types";
+import { downloadImage } from "@/utils/download-image";
 
 export const googlePassportMiddleware = () => {
   return new GoogleStrategy(

@@ -1,15 +1,15 @@
 import { Server as IOServer, Socket } from "socket.io";
-import { logger } from "../logger";
+import { logger } from "@/logger";
 import {
   UserConnection,
   userConnections,
-} from "../controller/socket-controller";
-import { PrivateChatModel } from "../model/private-chat-model";
-import { MessageModel } from "../model/message.model";
-import { IUser } from "../types/user.types";
-import { IMessage } from "../types/message.types";
-import { IPrivateChat } from "../types/chat-room.types";
-import { UserModel } from "../model/user-model";
+} from "@/controller/socket-controller";
+import { PrivateChatModel } from "@/model/private-chat-model";
+import { MessageModel } from "@/model/message.model";
+import { IUser } from "@/types/user.types";
+import { IMessage } from "@/types/message.types";
+import { IPrivateChat } from "@/types/chat-room.types";
+import { UserModel } from "@/model/user-model";
 
 export const joinPrivateRoom = (io: IOServer, socket: Socket, room: string) => {
   const roomParts = room.split("_");

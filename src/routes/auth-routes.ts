@@ -5,10 +5,10 @@ import {
   checkUserName,
   getAuthUser,
   saveUserName,
-} from "../controller/auth-controller";
-import { createUser } from "../controller/user-controller";
-import { verifyJWT } from "../service/auth-service";
-import { upload } from "../utils/image-upload";
+} from "@/controller/auth-controller";
+import { createUser } from "@/controller/user-controller";
+import { verifyJWT } from "@/service/auth-service";
+import { upload } from "@/utils/image-upload";
 
 const authRoutes = express.Router();
 

@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { getChatController, searchUsers } from "../controller/chat-controller";
-import { verifyJWT } from "../service/auth-service";
+import { getChatController, searchUsers } from "@/controller/chat-controller";
+import { verifyJWT } from "@/service/auth-service";
 
 const chatRouter = Router();
 

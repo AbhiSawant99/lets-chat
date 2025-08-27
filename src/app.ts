@@ -2,27 +2,27 @@ import express from "express";
 import mongoose from "mongoose";
 import http from "http";
 import type { Request, Response, NextFunction } from "express";
-import { AppError } from "./AppError";
+import { AppError } from "@/AppError";
 import dotenv from "dotenv";
-import { logger } from "./logger";
+import { logger } from "@/logger";
 
 import passport from "passport";
-import { AuthUser } from "./types/auth-user.types";
+import { AuthUser } from "@/types/auth-user.types";
 
-import { getUser, verifyJWT } from "./service/auth-service";
-import { googleUserSuccessfulLogin } from "./controller/user-oauth-controller";
-import authRoutes from "./routes/auth-routes";
+import { getUser, verifyJWT } from "@/service/auth-service";
+import { googleUserSuccessfulLogin } from "@/controller/user-oauth-controller";
+import authRoutes from "@/routes/auth-routes";
 
 import cookieParser from "cookie-parser";
-import { initSocket } from "./service/socket-init-service";
-import { socketController } from "./controller/socket-controller";
-import chatRouter from "./routes/chat-routes";
+import { initSocket } from "@/service/socket-init-service";
+import { socketController } from "@/controller/socket-controller";
+import chatRouter from "@/routes/chat-routes";
 import {
   CORSMiddleware,
   sessionMiddleware,
-} from "./middlewares/http-middleware";
-import { webSocketMiddleware } from "./middlewares/socket-middleware";
-import { googlePassportMiddleware } from "./middlewares/passport-middleware";
+} from "@/middlewares/http-middleware";
+import { webSocketMiddleware } from "@/middlewares/socket-middleware";
+import { googlePassportMiddleware } from "@/middlewares/passport-middleware";
 
 dotenv.config();
 

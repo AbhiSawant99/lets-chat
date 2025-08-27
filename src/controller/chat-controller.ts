@@ -1,14 +1,13 @@
 import type { Request, Response } from "express";
-import catchAsync from "../utils/catch-async";
-import { UserConnection, userConnections } from "./socket-controller";
-import { AuthUser } from "../types/auth-user.types";
-import { PrivateChatModel } from "../model/private-chat-model";
-import { GroupChatModel } from "../model/group-chat-model";
-import { UserModel } from "../model/user-model";
-import { AppError } from "../AppError";
+import catchAsync from "@/utils/catch-async";
+import { userConnections } from "./socket-controller";
+import { AuthUser } from "@/types/auth-user.types";
+import { PrivateChatModel } from "@/model/private-chat-model";
+import { UserModel } from "@/model/user-model";
+import { AppError } from "@/AppError";
 import httpStatus from "http-status";
-import { IMessage } from "../types/message.types";
-import { getRoomId } from "../utils/chat-utils";
+import { IMessage } from "@/types/message.types";
+import { getRoomId } from "@/utils/chat-utils";
 
 export const getChatController = catchAsync(
   async (req: Request, res: Response) => {

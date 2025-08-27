@@ -1,5 +1,5 @@
 import { Schema, model } from "mongoose";
-import { IPrivateChat } from "../types/chat-room.types";
+import { IPrivateChat } from "@/types/chat-room.types";
 
 const privateChatSchema = new Schema<IPrivateChat>(
   {

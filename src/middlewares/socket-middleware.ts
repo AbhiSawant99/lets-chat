@@ -2,9 +2,9 @@ import cookieParser from "cookie-parser";
 import { NextFunction } from "express";
 import { DefaultEventsMap, ExtendedError, Socket } from "socket.io";
 import jwt, { TokenExpiredError } from "jsonwebtoken";
-import { AppError } from "../AppError";
+import { AppError } from "@/AppError";
 import httpStatus from "http-status";
-import { logger } from "../logger";
+import { logger } from "@/logger";
 
 export const webSocketMiddleware = (
   socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>,

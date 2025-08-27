@@ -1,13 +1,13 @@
 import { Request, Response } from "express";
-import catchAsync from "../utils/catch-async";
-import { AuthRequestUser, AuthUser } from "../types/auth-user.types";
+import catchAsync from "@/utils/catch-async";
+import { AuthRequestUser, AuthUser } from "@/types/auth-user.types";
 import httpStatus from "http-status";
-import { requestAuthService, setUser } from "../service/auth-service";
-import { UserModel } from "../model/user-model";
-import { getIO } from "../service/socket-init-service";
+import { requestAuthService, setUser } from "@/service/auth-service";
+import { UserModel } from "@/model/user-model";
+import { getIO } from "@/service/socket-init-service";
 import { userConnections } from "./socket-controller";
-import { AppError } from "../AppError";
-import { saveUsernameService } from "../service/user-service";
+import { AppError } from "@/AppError";
+import { saveUsernameService } from "@/service/user-service";
 
 export const authLogin = catchAsync(async (req: Request, res: Response) => {
   const reqUser: AuthRequestUser = req.body;

@@ -1,16 +1,13 @@
 import { Server as IOServer, Socket } from "socket.io";
-import { AuthUser } from "../types/auth-user.types";
-import { IChatRoom } from "../types/chat-room.types";
-import { PrivateChatModel } from "../model/private-chat-model";
-import { AppError } from "../AppError";
-import { GroupChatModel } from "../model/group-chat-model";
+import { PrivateChatModel } from "@/model/private-chat-model";
+import { GroupChatModel } from "@/model/group-chat-model";
 import {
   UserConnection,
   userConnections,
-} from "../controller/socket-controller";
-import { UserModel } from "../model/user-model";
-import { IMessage } from "../types/message.types";
-import { getRoomId } from "../utils/chat-utils";
+} from "@/controller/socket-controller";
+import { UserModel } from "@/model/user-model";
+import { IMessage } from "@/types/message.types";
+import { getRoomId } from "@/utils/chat-utils";
 
 export const getUserChatService = async (
   io: IOServer,

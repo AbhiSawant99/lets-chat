@@ -1,9 +1,9 @@
 import { Request, Response } from "express";
-import catchAsync from "../utils/catch-async";
+import catchAsync from "@/utils/catch-async";
 import httpStatus from "http-status";
-import * as userService from "../service/user-service";
-import { IUser } from "../types/user.types";
-import { setUser } from "../service/auth-service";
+import * as userService from "@/service/user-service";
+import { IUser } from "@/types/user.types";
+import { setUser } from "@/service/auth-service";
 
 export const createUser = catchAsync(async (req: Request, res: Response) => {
   const reqUser: IUser = req.body;

@@ -1,9 +1,8 @@
-import { MessageModel } from "../model/message.model";
+import { MessageModel } from "@/model/message.model";
 import { Server as IOServer, Socket } from "socket.io";
-import mongoose, { Types } from "mongoose";
-import { PrivateChatModel } from "../model/private-chat-model";
-import { IUser } from "../types/user.types";
-import { responseMessage } from "../types/message.types";
+import { PrivateChatModel } from "@/model/private-chat-model";
+import { IUser } from "@/types/user.types";
+import { responseMessage } from "@/types/message.types";
 
 export const makeMessageSeen = async (
   toPrivateRoom: string,

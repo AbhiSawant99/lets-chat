@@ -1,5 +1,5 @@
 import { Schema, model } from "mongoose";
-import { IGroupChat } from "../types/chat-room.types";
+import { IGroupChat } from "@/types/chat-room.types";
 
 const groupChatSchema = new Schema<IGroupChat>(
   {
