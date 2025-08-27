@@ -7,6 +7,7 @@ import { AppError } from "@/AppError";
 import httpStatus from "http-status";
 import bycrypt from "bcrypt";
 import { UserModel } from "@/model/user-model";
+import { setUserCache } from "@/utils/user-cache";
 
 export const setUser = (user: AuthUser) => {
   return jwt.sign(
@@ -82,6 +83,13 @@ export const requestAuthService = async (loginData: AuthRequestUser) => {
       httpStatus.UNAUTHORIZED
     );
   }
+
+  setUserCache(existingUser.id, {
+    id: existingUser.id,
+    name: existingUser.name,
+    username: existingUser.username,
+    photo: existingUser.photo,
+  });
 
   return existingUser;
 };

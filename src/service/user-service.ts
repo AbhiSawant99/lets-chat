@@ -9,6 +9,11 @@ import { UserModel } from "@/model/user-model";
 import { AuthUser } from "@/types/auth-user.types";
 import { saveLocalUpload } from "@/utils/image-upload";
 import { logger } from "@/logger";
+import {
+  deleteUserCache,
+  getUserCache,
+  setUserCache,
+} from "@/utils/user-cache";
 
 export const createUserService = async (requestUser: IUser) => {
   if (!requestUser.name || !requestUser.email) {
@@ -66,3 +71,49 @@ export const saveUsernameService = async (
     throw new AppError("Could not save data", httpStatus.INTERNAL_SERVER_ERROR);
   }
 };
+
+export async function findUserById(userId: string) {
+  // Check cache
+  const cached = getUserCache(userId);
+  if (cached) return cached;
+
+  // Fetch from DB
+  const user = await UserModel.findById(userId).lean();
+  if (!user) return null;
+
+  const result = {
+    id: userId,
+    name: user.name,
+    username: user.username,
+    photo: user.photo,
+  };
+
+  // Store in cache
+  setUserCache(userId, result);
+
+  return result;
+}
+
+export async function updateUser(
+  userId: string,
+  updates: Partial<{ username: string; photo: string }>
+) {
+  const updated = await UserModel.findByIdAndUpdate(userId, updates, {
+    new: true,
+  })
+    .select("name username photo")
+    .lean();
+
+  if (updated) {
+    // invalidate old cache and replace
+    deleteUserCache(userId);
+    setUserCache(userId, {
+      id: updated.id,
+      name: updated.name,
+      username: updated.username,
+      photo: updated.photo,
+    });
+  }
+
+  return updated;
+}

@@ -8,6 +8,7 @@ import { AppError } from "@/AppError";
 import httpStatus from "http-status";
 import { IMessage } from "@/types/message.types";
 import { getRoomId } from "@/utils/chat-utils";
+import { findUserById } from "@/service/user-service";
 
 export const getChatController = catchAsync(
   async (req: Request, res: Response) => {
@@ -36,20 +37,22 @@ export const getChatController = catchAsync(
     );
 
     const recipientDetails = recipient
-      ? await UserModel.findById(recipient.toString()).lean()
+      ? await findUserById(recipient.toString())
       : null;
 
     const recipientConnectionDetails = recipient
       ? userConnections.get(recipient.toString())
       : {
-          userId: recipientDetails?._id,
+          userId: recipientDetails?.id,
           socketIds: [],
           username: recipientDetails?.name,
           online: false,
         };
     const isParticipantOnline = recipientConnectionDetails?.online ?? false;
 
-    const sender = await UserModel.findById(privateChat?.lastMessage?.sender);
+    const sender = await findUserById(
+      privateChat?.lastMessage?.sender.toString()
+    );
 
     const privateChatWithStatus = {
       id: privateChat._id,
@@ -66,6 +69,7 @@ export const getChatController = catchAsync(
       userId: recipientConnectionDetails?.userId,
       username: recipientConnectionDetails?.username,
       socketId: recipientConnectionDetails?.socketIds,
+      photo: recipientDetails?.photo,
       online: isParticipantOnline,
     };
 
@@ -100,6 +104,7 @@ export const searchUsers = catchAsync(async (req: Request, res: Response) => {
       userId: user.id,
       online: userConnections.has(user.id),
       roomId: getRoomId(currentUser.id ?? "", user.id),
+      photo: user.photo || "",
     };
   });
 

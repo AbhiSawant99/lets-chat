@@ -8,6 +8,7 @@ import {
 import { UserModel } from "@/model/user-model";
 import { IMessage } from "@/types/message.types";
 import { getRoomId } from "@/utils/chat-utils";
+import { findUserById } from "@/service/user-service";
 
 export const getUserChatService = async (
   io: IOServer,
@@ -39,15 +40,13 @@ export const getUserChatService = async (
           ?.toString();
       }
 
-      const recipientDetails = recipient
-        ? await UserModel.findById(recipient).lean()
-        : null;
+      const recipientDetails = recipient ? await findUserById(recipient) : null;
 
       const recipientConnectionDetails =
         recipient && userConnections.get(recipient)
           ? userConnections.get(recipient)
           : {
-              userId: recipientDetails?._id,
+              userId: recipientDetails?.id,
               socketIds: [],
               username: recipientDetails?.name,
               online: false,
@@ -67,6 +66,7 @@ export const getUserChatService = async (
               readBy: chat.lastMessage.readBy,
             }
           : undefined,
+        photo: recipientDetails?.photo,
         userId: recipientConnectionDetails?.userId,
         username: recipientConnectionDetails?.username,
         socketId: recipientConnectionDetails?.socketIds,
@@ -88,6 +88,8 @@ export const getUserChatService = async (
       participants: [userFirstChatDetails.userId, userFirstChatDetails.userId],
     });
 
+    const userDetails = await findUserById(user.userId);
+
     privateChatsWithStatus.push({
       id: userFirstChat.id,
       roomId: userFirstChat.roomString,
@@ -95,6 +97,7 @@ export const getUserChatService = async (
       username: userFirstChatDetails?.username,
       socketId: userFirstChatDetails?.socketIds,
       online: userFirstChatDetails?.online,
+      photo: userDetails?.photo || "",
       lastMessage: undefined,
     });
   }

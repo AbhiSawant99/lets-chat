@@ -9,7 +9,7 @@ import { MessageModel } from "@/model/message.model";
 import { IUser } from "@/types/user.types";
 import { IMessage } from "@/types/message.types";
 import { IPrivateChat } from "@/types/chat-room.types";
-import { UserModel } from "@/model/user-model";
+import { findUserById } from "@/service/user-service";
 
 export const joinPrivateRoom = (io: IOServer, socket: Socket, room: string) => {
   const roomParts = room.split("_");
@@ -122,6 +122,7 @@ export const privateMessageService = async (
 
   io.to(toPrivateRoom).emit("receive_private_message", {
     id: savedMessage._id,
+    chatId: savedMessage.chatRoomId,
     from: sender?.username,
     message,
     status: savedMessage.status,
@@ -194,11 +195,11 @@ const emitChatCreated = async (
   socket: Socket,
   sender: UserConnection
 ) => {
-  const receiverId = getReceiverFromPrivateRoom(chat.roomString);
+  const receiverId = getReceiverFromPrivateRoom(chat.roomString, sender.userId);
 
   if (!receiverId) return;
 
-  const receiverDetails = await UserModel.findById(receiverId);
+  const receiverDetails = await findUserById(receiverId);
 
   if (receiverDetails) {
     const receiverOnline = userConnections.get(receiverId)?.online;
@@ -208,6 +209,7 @@ const emitChatCreated = async (
       lastMessage: undefined,
       userId: receiverDetails.id,
       username: receiverDetails.name,
+      photo: receiverDetails.photo ?? "",
       online: receiverOnline,
     });
   }

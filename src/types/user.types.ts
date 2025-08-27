@@ -8,3 +8,11 @@ export interface IUser {
   oauthProvider?: String;
   oauthId?: String;
 }
+
+export interface ICachedUser {
+  id?: string;
+  name: string;
+  username?: string;
+  photo?: string;
+  expiresAt?: number;
+}
