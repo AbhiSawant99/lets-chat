@@ -17,6 +17,7 @@ const userSchema = new Schema<IUser>(
       unique: true,
       trim: true,
       match: [/^[A-Za-z0-9_]{4,}$/, "Not a valid username"],
+      lowercase: true,
     },
     photo: {
       type: String,
