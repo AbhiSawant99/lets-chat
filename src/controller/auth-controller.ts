@@ -7,8 +7,7 @@ import { UserModel } from "../model/user-model";
 import { getIO } from "../service/socket-init-service";
 import { userConnections } from "./socket-controller";
 import { AppError } from "../AppError";
-import fs from "fs";
-import { saveLocalUpload } from "../utils/image-upload";
+import { saveUsernameService } from "../service/user-service";
 
 export const authLogin = catchAsync(async (req: Request, res: Response) => {
   const reqUser: AuthRequestUser = req.body;
@@ -89,6 +88,7 @@ export const getAuthUser = catchAsync(async (req: Request, res: Response) => {
 export const saveUserName = catchAsync(async (req: Request, res: Response) => {
   const user: AuthUser | undefined = req.user;
   const { username } = req.body;
+  const usernameRegex = /^[A-Za-z0-9_]{4,}$/;
 
   if (!user) {
     throw new AppError("usernot found", httpStatus.BAD_REQUEST);
@@ -98,30 +98,24 @@ export const saveUserName = catchAsync(async (req: Request, res: Response) => {
     throw new AppError("username is required", httpStatus.BAD_REQUEST);
   }
 
-  const existingUser = await UserModel.findById(user.id);
+  if (!usernameRegex.test(username)) {
+    throw new AppError(
+      `Not a valid username: ${username}`,
+      httpStatus.BAD_REQUEST
+    );
+  }
 
-  try {
-    const photoUrl = saveLocalUpload(req.file);
-    if (existingUser) {
-      existingUser.username = username;
-      existingUser.photo = photoUrl ?? undefined;
-      existingUser?.save();
+  const updatedUser = await saveUsernameService(user, username, req);
 
-      res.status(httpStatus.OK).json({
-        user: {
-          id: user.id,
-          displayName: user.displayName,
-          email: user.email,
-          photo: photoUrl || "",
-        },
-      });
-    }
-  } catch (err) {
-    // cleanup orphan file
-    if (req.file) {
-      fs.unlinkSync(req.file.path);
-    }
-    throw new AppError("Could not save data", httpStatus.INTERNAL_SERVER_ERROR);
+  if (updatedUser) {
+    res.status(httpStatus.OK).json({
+      user: {
+        id: updatedUser.id,
+        displayName: updatedUser.name,
+        email: updatedUser.email,
+        photo: updatedUser.photo || "",
+      },
+    });
   }
 });
 
