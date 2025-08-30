@@ -28,6 +28,7 @@ dotenv.config();
 
 const PORT = process.env.PORT || 3000;
 const dbURI: string = process.env.MONGODB_URI ?? "";
+const FRONTEND_URL = process.env.FRONTEND_URL ?? "";
 
 const app = express();
 
@@ -70,9 +71,9 @@ passport.deserializeUser((user: AuthUser, done) => {
 
 app.get("/", (req: Request, res: Response) => {
   if (getUser(req?.cookies?.token)) {
-    res.redirect("http://localhost:5173/profile");
+    res.redirect(`${FRONTEND_URL}/profile`);
   } else {
-    res.redirect("http://localhost:5173");
+    res.redirect(FRONTEND_URL);
   }
 });
 

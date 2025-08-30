@@ -1,8 +1,10 @@
 import cors from "cors";
 import session from "express-session";
 
+const FRONTEND_URL = process.env.FRONTEND_URL ?? "";
+
 export const CORSMiddleware = cors({
-  origin: "http://localhost:5173", // Adjust this to your frontend URL
+  origin: FRONTEND_URL, // Adjust this to your frontend URL
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
   credentials: true, // Allow cookies to be sent
 });

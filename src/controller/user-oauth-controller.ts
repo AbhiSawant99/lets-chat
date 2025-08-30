@@ -5,6 +5,8 @@ import catchAsync from "@/utils/catch-async";
 import type { Request, Response } from "express";
 import { UserModel } from "@/model/user-model";
 
+const FRONTEND_URL = process.env.FRONTEND_URL ?? "";
+
 export const googleUserSuccessfulLogin = catchAsync(
   async (req: Request, res: Response) => {
     const user: AuthUser | undefined = req.user;
@@ -32,9 +34,9 @@ export const googleUserSuccessfulLogin = catchAsync(
     });
 
     if (existingUser.username) {
-      res.redirect("http://localhost:5173/chat");
+      res.redirect(`${FRONTEND_URL}/chat`);
     } else {
-      res.redirect("http://localhost:5173/username-form");
+      res.redirect(`${FRONTEND_URL}/username-form`);
     }
   }
 );

@@ -2,10 +2,12 @@ import { Server as SocketIOServer } from "socket.io";
 
 let io: SocketIOServer;
 
+const FRONTEND_URL = process.env.FRONTEND_URL ?? "";
+
 export const initSocket = (server: any) => {
   io = new SocketIOServer(server, {
     cors: {
-      origin: "http://localhost:5173",
+      origin: FRONTEND_URL,
       credentials: true,
     },
   });
