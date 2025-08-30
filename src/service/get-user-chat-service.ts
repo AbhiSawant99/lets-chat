@@ -1,11 +1,9 @@
 import { Server as IOServer, Socket } from "socket.io";
 import { PrivateChatModel } from "@/model/private-chat-model";
-import { GroupChatModel } from "@/model/group-chat-model";
 import {
   UserConnection,
   userConnections,
 } from "@/controller/socket-controller";
-import { UserModel } from "@/model/user-model";
 import { IMessage } from "@/types/message.types";
 import { getRoomId } from "@/utils/chat-utils";
 import { findUserById } from "@/service/user-service";
@@ -21,9 +19,8 @@ export const getUserChatService = async (
     participants: user.userId,
   })
     .populate<{ lastMessage: IMessage }>("lastMessage")
+    .sort({ "lastMessage.createdAt": -1 }) // newest first
     .lean();
-
-  const groupChats = await GroupChatModel.find({ participants: user.userId });
 
   const privateChatsWithStatus = await Promise.all(
     privateChats.map(async (chat) => {
@@ -85,7 +82,7 @@ export const getUserChatService = async (
         userFirstChatDetails.userId,
         userFirstChatDetails.userId
       ),
-      participants: [userFirstChatDetails.userId, userFirstChatDetails.userId],
+      participants: [userFirstChatDetails.userId],
     });
 
     const userDetails = await findUserById(user.userId);
@@ -100,9 +97,15 @@ export const getUserChatService = async (
       photo: userDetails?.photo || "",
       lastMessage: undefined,
     });
+
+    socket.emit("chats", privateChatsWithStatus);
+  } else {
+    const sortedPrivateChat = privateChatsWithStatus.sort((a, b) => {
+      return (
+        new Date(b.lastMessage?.createdAt || 0).getTime() -
+        new Date(a.lastMessage?.createdAt || 0).getTime()
+      );
+    });
+    socket.emit("chats", sortedPrivateChat);
   }
-
-  const chats = [...privateChatsWithStatus, ...groupChats];
-
-  socket.emit("chats", chats);
 };

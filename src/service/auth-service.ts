@@ -14,7 +14,7 @@ export const setUser = (user: AuthUser) => {
     {
       id: user.id,
       displayName: user.displayName,
-      emails: user.email,
+      email: user.email,
       photo: user.photo,
     },
     process.env.JWT_SECRET || "",

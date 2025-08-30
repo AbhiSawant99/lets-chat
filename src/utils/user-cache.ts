@@ -3,7 +3,7 @@ import { ICachedUser } from "@/types/user.types";
 
 const userCache = new Map<string, ICachedUser>();
 
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+const CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
 
 export function getUserCache(userId: string): ICachedUser | null {
   const cached = userCache.get(userId);
