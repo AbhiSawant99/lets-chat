@@ -1,9 +1,11 @@
+import dotenv from "dotenv";
+dotenv.config();
+
 import express from "express";
 import mongoose from "mongoose";
 import http from "http";
 import type { Request, Response, NextFunction } from "express";
 import { AppError } from "@/AppError";
-import dotenv from "dotenv";
 import { logger } from "@/logger";
 
 import passport from "passport";
@@ -23,8 +25,6 @@ import {
 } from "@/middlewares/http-middleware";
 import { webSocketMiddleware } from "@/middlewares/socket-middleware";
 import { googlePassportMiddleware } from "@/middlewares/passport-middleware";
-
-dotenv.config();
 
 const PORT = process.env.PORT || 3000;
 const dbURI: string = process.env.MONGODB_URI ?? "";

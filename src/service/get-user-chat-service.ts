@@ -26,10 +26,7 @@ export const getUserChatService = async (
     privateChats.map(async (chat) => {
       let recipient: string | undefined;
 
-      if (
-        chat.participants?.length > 0 &&
-        chat.participants[0]?.toString() === chat.participants[1]?.toString()
-      ) {
+      if (chat.participants?.length === 1) {
         recipient = chat.participants[0].toString();
       } else {
         recipient = chat.participants
