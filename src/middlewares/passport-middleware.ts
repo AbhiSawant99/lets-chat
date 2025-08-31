@@ -4,12 +4,14 @@ import { UserModel } from "@/model/user-model";
 import { IUser } from "@/types/user.types";
 import { downloadImage } from "@/utils/download-image";
 
+const API_URL = process.env.API_URL ?? "";
+
 export const googlePassportMiddleware = () => {
   return new GoogleStrategy(
     {
       clientID: process.env.GOOGLE_CLIENT_ID || "",
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
-      callbackURL: `/auth/google/callback`,
+      callbackURL: `${API_URL}/auth/google/callback`,
     },
     async (accessToken, refreshToken, profile, done) => {
       const existingUser = await UserModel.findOne({ oauthId: profile.id });
