@@ -10,17 +10,15 @@ export const createUser = catchAsync(async (req: Request, res: Response) => {
 
   const existingUser = await userService.createUserService(reqUser);
 
-  const token = setUser({
-    id: existingUser._id.toString(),
-    displayName: existingUser.name,
-    email: existingUser.email,
-    photo: existingUser.photo || "",
-  });
-
-  res.cookie("token", token, {
-    httpOnly: true,
-    secure: true,
-  });
+  setUser(
+    {
+      id: existingUser._id.toString(),
+      displayName: existingUser.name,
+      email: existingUser.email,
+      photo: existingUser.photo || "",
+    },
+    res
+  );
 
   res
     .status(httpStatus.CREATED)

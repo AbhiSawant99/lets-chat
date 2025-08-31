@@ -21,17 +21,15 @@ export const googleUserSuccessfulLogin = catchAsync(
       return;
     }
 
-    const token = setUser({
-      id: existingUser._id.toString(),
-      displayName: existingUser.name,
-      email: existingUser.email,
-      photo: existingUser.photo || "",
-    });
-
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: true,
-    });
+    setUser(
+      {
+        id: existingUser._id.toString(),
+        displayName: existingUser.name,
+        email: existingUser.email,
+        photo: existingUser.photo || "",
+      },
+      res
+    );
 
     if (existingUser.username) {
       res.redirect(`${FRONTEND_URL}/chat`);

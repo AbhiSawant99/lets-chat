@@ -20,19 +20,15 @@ export const authLogin = catchAsync(async (req: Request, res: Response) => {
     });
   }
 
-  const token = setUser({
-    id: existingUser._id.toString(),
-    displayName: existingUser.name,
-    email: existingUser.email,
-    photo: existingUser.photo || "",
-  });
-
-  res.cookie("token", token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-    maxAge: 24 * 60 * 60 * 1000, // 1 day in ms
-  });
+  setUser(
+    {
+      id: existingUser._id.toString(),
+      displayName: existingUser.name,
+      email: existingUser.email,
+      photo: existingUser.photo || "",
+    },
+    res
+  );
 
   res.status(httpStatus.OK).json({
     message: "Login successful",

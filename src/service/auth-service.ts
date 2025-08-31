@@ -9,8 +9,8 @@ import bycrypt from "bcrypt";
 import { UserModel } from "@/model/user-model";
 import { setUserCache } from "@/utils/user-cache";
 
-export const setUser = (user: AuthUser) => {
-  return jwt.sign(
+export const setUser = (user: AuthUser, res: Response) => {
+  const token = jwt.sign(
     {
       id: user.id,
       displayName: user.displayName,
@@ -22,6 +22,13 @@ export const setUser = (user: AuthUser) => {
       expiresIn: "24h",
     }
   );
+
+  res.cookie("token", token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    maxAge: 24 * 60 * 60 * 1000, // 1 day in ms
+  });
 };
 
 export const getUser = (token: string): AuthUser | null => {
