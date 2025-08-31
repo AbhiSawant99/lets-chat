@@ -19,10 +19,7 @@ import cookieParser from "cookie-parser";
 import { initSocket } from "@/service/socket-init-service";
 import { socketController } from "@/controller/socket-controller";
 import chatRouter from "@/routes/chat-routes";
-import {
-  CORSMiddleware,
-  sessionMiddleware,
-} from "@/middlewares/http-middleware";
+import { CORSMiddleware } from "@/middlewares/http-middleware";
 import { webSocketMiddleware } from "@/middlewares/socket-middleware";
 import { googlePassportMiddleware } from "@/middlewares/passport-middleware";
 
@@ -53,10 +50,7 @@ app.use(CORSMiddleware);
 app.use(express.json());
 app.use("/uploads", express.static("uploads"));
 
-app.use(sessionMiddleware);
-
 app.use(passport.initialize());
-app.use(passport.session());
 app.use(cookieParser());
 
 passport.use(googlePassportMiddleware());
@@ -81,12 +75,13 @@ app.get(
   "/auth/google",
   passport.authenticate("google", {
     scope: ["profile", "email"],
+    session: false,
   })
 );
 
 app.get(
   "/auth/google/callback",
-  passport.authenticate("google", { failureRedirect: "/" }),
+  passport.authenticate("google", { failureRedirect: "/", session: false }),
   googleUserSuccessfulLogin
 );
 
