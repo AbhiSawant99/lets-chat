@@ -7,7 +7,7 @@ import { IUser } from "@/types/user.types";
 import { AppError } from "@/AppError";
 import { UserModel } from "@/model/user-model";
 import { AuthUser } from "@/types/auth-user.types";
-import { saveLocalUpload, uploadToCloudinary } from "@/utils/image-upload";
+import { uploadToCloudinary } from "@/utils/image-upload";
 import { logger } from "@/logger";
 import {
   deleteUserCache,

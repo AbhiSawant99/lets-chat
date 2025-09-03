@@ -20,8 +20,8 @@ export const googlePassportMiddleware = () => {
         let localPhotoPath = null;
         if (profile.photos && profile.photos.length > 0) {
           const photoUrl = profile.photos[0].value;
-          const filename = `${profile.id}_${Date.now()}`;
-          localPhotoPath = await downloadImage(photoUrl, filename);
+          const savePhotoResult = await downloadImage(photoUrl);
+          localPhotoPath = savePhotoResult.secure_url;
         }
 
         const newUser: IUser = {

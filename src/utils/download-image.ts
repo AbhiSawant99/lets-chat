@@ -1,9 +1,8 @@
-import fs from "fs";
-import path from "path";
 import fetch from "node-fetch";
+import { uploadToCloudinary } from "@/utils/image-upload";
 
 // Download image from URL and save locally
-export async function downloadImage(url: string, filenameBase: string) {
+export async function downloadImage(url: string) {
   const response = await fetch(url);
   if (!response.ok) {
     throw new Error(`Failed to fetch image: ${response.statusText}`);
@@ -19,19 +18,7 @@ export async function downloadImage(url: string, filenameBase: string) {
     else if (contentType.includes("jpeg")) extension = ".jpg";
   }
 
-  // ensure uploads dir exists
-  const uploadDir = path.join(process.cwd(), "uploads");
-  if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
-  }
-
-  // final filename with extension
-  const filename = `${filenameBase}${extension}`;
-  const filePath = path.join(uploadDir, filename);
-
-  // write file
   const buffer = Buffer.from(await response.arrayBuffer());
-  fs.writeFileSync(filePath, buffer);
 
-  return `/uploads/${filename}`; // relative path for MongoDB
+  return uploadToCloudinary(buffer, "chat_app_uploads");
 }

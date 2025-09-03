@@ -88,8 +88,9 @@ export const socketController = (io: Server) => {
 
     socket.on("disconnect", () => disconnectSocketService(socket));
 
-    socket.onAny((event, ...args) => {
-      console.log(event, args);
-    });
+    //? useful for debugging catch any socket events
+    // socket.onAny((event, ...args) => {
+    //   console.log(event, args);
+    // });
   });
 };
