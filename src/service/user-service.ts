@@ -7,7 +7,7 @@ import { IUser } from "@/types/user.types";
 import { AppError } from "@/AppError";
 import { UserModel } from "@/model/user-model";
 import { AuthUser } from "@/types/auth-user.types";
-import { saveLocalUpload } from "@/utils/image-upload";
+import { saveLocalUpload, uploadToCloudinary } from "@/utils/image-upload";
 import { logger } from "@/logger";
 import {
   deleteUserCache,
@@ -47,10 +47,20 @@ export const saveUsernameService = async (
   const oldUserPhoto = existingUser.photo;
 
   try {
-    const photoUrl = saveLocalUpload(req.file);
+    // const photoUrl = saveLocalUpload(req.file);
     existingUser.username = username;
-    if (photoUrl) {
-      existingUser.photo = photoUrl;
+    let photoUrl = "";
+
+    if (req.file?.buffer) {
+      const result = await uploadToCloudinary(
+        req.file?.buffer,
+        "chat_app_uploads"
+      );
+      photoUrl = result.secure_url;
+
+      if (photoUrl) {
+        existingUser.photo = photoUrl;
+      }
     }
 
     await existingUser?.save();

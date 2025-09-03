@@ -57,8 +57,8 @@ export const authLogout = catchAsync(async (req: Request, res: Response) => {
 
   res.clearCookie("token", {
     httpOnly: true,
-    secure: true,
-    sameSite: "strict",
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
   });
 
   res.status(httpStatus.OK).json({
