@@ -9,6 +9,8 @@ import { userConnections } from "./socket-controller";
 import { AppError } from "@/AppError";
 import { saveUsernameService } from "@/service/user-service";
 
+const FRONTEND_URL = process.env.FRONTEND_URL ?? "";
+
 export const authLogin = catchAsync(async (req: Request, res: Response) => {
   const reqUser: AuthRequestUser = req.body;
 
@@ -30,15 +32,29 @@ export const authLogin = catchAsync(async (req: Request, res: Response) => {
     res
   );
 
-  res.status(httpStatus.OK).json({
-    message: "Login successful",
-    user: {
-      id: existingUser.id,
-      displayName: existingUser.name,
-      email: existingUser.email,
-      photo: existingUser.photo || "",
-    },
-  });
+  if (existingUser.username) {
+    res.status(httpStatus.OK).json({
+      navigate: "/chat",
+      message: "Login successful",
+      user: {
+        id: existingUser.id,
+        displayName: existingUser.name,
+        email: existingUser.email,
+        photo: existingUser.photo || "",
+      },
+    });
+  } else {
+    res.status(httpStatus.OK).json({
+      navigate: "/username-form",
+      message: "Login successful",
+      user: {
+        id: existingUser.id,
+        displayName: existingUser.name,
+        email: existingUser.email,
+        photo: existingUser.photo || "",
+      },
+    });
+  }
 });
 
 export const authLogout = catchAsync(async (req: Request, res: Response) => {
