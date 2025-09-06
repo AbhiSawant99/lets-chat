@@ -56,7 +56,7 @@ const sendRoomDetails = async (room: string, socket: Socket): Promise<void> => {
   const existingChatRoom = await PrivateChatModel.findOne({ roomString: room });
 
   if (!existingChatRoom) {
-    return;
+    socket.emit("chat_history", []);
   } else {
     const existingPrivateMessages = await MessageModel.find({
       chatRoomId: existingChatRoom.id,
