@@ -69,7 +69,10 @@ const sendRoomDetails = async (room: string, socket: Socket): Promise<void> => {
         return {
           id: messageData._id,
           from: messageData.sender.name,
-          message: messageData.content,
+          message:
+            messageData.status === "deleted"
+              ? "This message was deleted"
+              : messageData.content,
           status: messageData.status,
           createdAt: messageData.createdAt,
         };
@@ -128,6 +131,18 @@ export const privateMessageService = async (
     status: savedMessage.status,
     createdAt: savedMessage.createdAt,
     readBy: savedMessage.readBy,
+  });
+
+  sender?.socketIds.forEach((toSocketId) => {
+    io.to(toSocketId).emit("receive_private_message_list", {
+      id: savedMessage._id,
+      chatId: savedMessage.chatRoomId,
+      from: sender?.username,
+      message,
+      status: savedMessage.status,
+      createdAt: savedMessage.createdAt,
+      readBy: savedMessage.readBy,
+    });
   });
 
   const receiverUserId = getReceiverFromPrivateRoom(
@@ -221,3 +236,86 @@ function getReceiverFromPrivateRoom(roomId: string, senderId?: string) {
   if (!user1 || !user2) return null;
   return user1 === senderId ? user2 : user1;
 }
+
+export const deletePrivateMessage = async (
+  toPrivateRoom: string,
+  messageId: string,
+  socket: Socket,
+  io: IOServer
+) => {
+  const sender = userConnections.get(socket.data.userId);
+
+  if (!sender) return;
+
+  const userId = userConnections.get(socket.data.userId);
+
+  const message = await MessageModel.findById(messageId);
+
+  if (!message) {
+    socket.emit("errorMessage", { error: "Message does not exist" });
+    return;
+  }
+
+  if (!message.sender.equals(userId?.userId ?? "")) {
+    socket.emit("errorMessage", {
+      error: "You are not authorized to delete this message",
+    });
+    return;
+  }
+
+  const deletedMessage = await MessageModel.findByIdAndUpdate(
+    messageId,
+    {
+      status: "deleted",
+    },
+    { new: true }
+  );
+
+  if (!deletedMessage) return;
+
+  io.to(toPrivateRoom).emit("message_deleted_private", {
+    id: deletedMessage._id,
+    chatId: deletedMessage.chatRoomId,
+    from: sender?.username,
+    message: "This message was deleted",
+    status: deletedMessage.status,
+    createdAt: deletedMessage.createdAt,
+    readBy: deletedMessage.readBy,
+  });
+
+  sender?.socketIds.forEach((toSocketId) => {
+    io.to(toSocketId).emit("message_deleted_private_list", {
+      id: deletedMessage._id,
+      chatId: deletedMessage.chatRoomId,
+      from: sender?.username,
+      message: "This message was deleted",
+      status: deletedMessage.status,
+      createdAt: deletedMessage.createdAt,
+      readBy: deletedMessage.readBy,
+    });
+  });
+
+  const receiverUserId = getReceiverFromPrivateRoom(
+    toPrivateRoom,
+    sender?.userId
+  );
+
+  if (!receiverUserId) return;
+
+  const receiver = userConnections.get(receiverUserId);
+  if (!receiver) return;
+
+  const receiverSocketIds: string[] = receiver.socketIds;
+
+  receiverSocketIds.forEach((toSocketId) => {
+    io.to(toSocketId).emit("message_deleted_private_notification", {
+      id: deletedMessage._id,
+      chatId: deletedMessage.chatRoomId,
+      from: sender?.username,
+      message: "This message was deleted",
+      status: deletedMessage.status,
+      createdAt: deletedMessage.createdAt,
+      readBy: deletedMessage.readBy,
+    });
+  });
+};

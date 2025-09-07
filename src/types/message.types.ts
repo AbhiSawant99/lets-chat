@@ -13,7 +13,7 @@ export interface IMessage {
   updatedAt: Date;
 }
 
-export type messageStatus = "sent" | "seen";
+export type messageStatus = "sent" | "seen" | "deleted";
 
 export interface responseMessage {
   id: string;

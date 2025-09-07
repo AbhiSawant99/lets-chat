@@ -23,7 +23,7 @@ const messageSchema = new Schema<IMessage>(
     },
     status: {
       type: String,
-      enum: ["sent", "seen"],
+      enum: ["sent", "seen", "deleted"],
       default: "sent",
     },
     readBy: [

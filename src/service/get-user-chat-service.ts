@@ -54,7 +54,10 @@ export const getUserChatService = async (
         lastMessage: chat.lastMessage
           ? {
               id: chat.lastMessage._id,
-              message: chat.lastMessage.content,
+              message:
+                chat.lastMessage.status === "deleted"
+                  ? "This message was deleted"
+                  : chat.lastMessage.content,
               createdAt: chat.lastMessage.createdAt,
               status: chat.lastMessage.status,
               readBy: chat.lastMessage.readBy,

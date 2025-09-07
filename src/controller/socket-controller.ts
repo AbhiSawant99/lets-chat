@@ -1,6 +1,7 @@
 import { Server, Socket } from "socket.io";
 import { logger } from "@/logger";
 import {
+  deletePrivateMessage,
   joinPrivateRoom,
   privateMessageService,
 } from "@/service/private-chat-service";
@@ -85,6 +86,10 @@ export const socketController = (io: Server) => {
     socket.on("private_message", ({ toPrivateRoom, message }) =>
       privateMessageService(io, socket, toPrivateRoom, message)
     );
+
+    socket.on("delete_private_message", ({ toPrivateRoom, messageId }) => {
+      deletePrivateMessage(toPrivateRoom, messageId, socket, io);
+    });
 
     socket.on("disconnect", () => disconnectSocketService(socket));
 

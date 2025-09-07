@@ -89,7 +89,10 @@ export const maskHistoryMessageSeen = async (
       return {
         id: messageData._id,
         from: messageData.sender.name,
-        message: messageData.content,
+        message:
+          messageData.status === "deleted"
+            ? "This message was deleted"
+            : messageData.content,
         status: messageData.status,
         createdAt: messageData.createdAt,
         readBy: messageData.readBy,
