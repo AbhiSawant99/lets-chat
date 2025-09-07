@@ -26,6 +26,7 @@ export const authLogin = catchAsync(async (req: Request, res: Response) => {
     {
       id: existingUser._id.toString(),
       displayName: existingUser.name,
+      username: existingUser.username,
       email: existingUser.email,
       photo: existingUser.photo || "",
     },
@@ -39,6 +40,7 @@ export const authLogin = catchAsync(async (req: Request, res: Response) => {
       user: {
         id: existingUser.id,
         displayName: existingUser.name,
+        username: existingUser.username,
         email: existingUser.email,
         photo: existingUser.photo || "",
       },
@@ -50,6 +52,7 @@ export const authLogin = catchAsync(async (req: Request, res: Response) => {
       user: {
         id: existingUser.id,
         displayName: existingUser.name,
+        username: existingUser.username,
         email: existingUser.email,
         photo: existingUser.photo || "",
       },
@@ -93,6 +96,7 @@ export const getAuthUser = catchAsync(async (req: Request, res: Response) => {
     user: {
       id: user.id,
       displayName: user.displayName,
+      username: user.username,
       email: user.email,
       photo: user.photo || "",
     },
@@ -126,6 +130,7 @@ export const saveUserName = catchAsync(async (req: Request, res: Response) => {
       user: {
         id: updatedUser.id,
         displayName: updatedUser.name,
+        username: updatedUser.username,
         email: updatedUser.email,
         photo: updatedUser.photo || "",
       },

@@ -7,7 +7,7 @@ import { IUser } from "@/types/user.types";
 import { AppError } from "@/AppError";
 import { UserModel } from "@/model/user-model";
 import { AuthUser } from "@/types/auth-user.types";
-import { uploadToCloudinary } from "@/utils/image-upload";
+import { deleteFromCloudinary, uploadToCloudinary } from "@/utils/image-upload";
 import { logger } from "@/logger";
 import {
   deleteUserCache,
@@ -26,7 +26,7 @@ export const createUserService = async (requestUser: IUser) => {
   }
 
   if (requestUser.password) {
-    const hashedPassword = await bycrypt.hash(requestUser.password, 10);
+    const hashedPassword = await hashPassword(requestUser.password);
     requestUser.password = hashedPassword;
   }
 
@@ -104,26 +104,71 @@ export async function findUserById(userId: string) {
   return result;
 }
 
-export async function updateUser(
+export async function updateUserService(
   userId: string,
-  updates: Partial<{ username: string; photo: string }>
+  updates: Partial<{
+    name: string;
+    username: string;
+    photo: string;
+    password: string;
+  }>,
+  req: Request
 ) {
-  const updated = await UserModel.findByIdAndUpdate(userId, updates, {
-    new: true,
-  })
-    .select("name username photo")
-    .lean();
+  const existingUser = await UserModel.findById(userId);
 
-  if (updated) {
-    // invalidate old cache and replace
-    deleteUserCache(userId);
-    setUserCache(userId, {
-      id: updated.id,
-      name: updated.name,
-      username: updated.username,
-      photo: updated.photo,
-    });
+  if (!existingUser) {
+    throw new AppError("User not found", httpStatus.NOT_FOUND);
   }
 
-  return updated;
+  const oldUserPhoto = existingUser.photo;
+
+  try {
+    existingUser.username = updates.username || existingUser.username;
+    existingUser.name = updates.name || existingUser.name;
+    let photoUrl = "";
+
+    if (req.file?.buffer) {
+      const result = await uploadToCloudinary(
+        req.file?.buffer,
+        "chat_app_uploads"
+      );
+      photoUrl = result.secure_url;
+
+      if (photoUrl) {
+        existingUser.photo = photoUrl;
+      }
+    } else if (photoUrl === "") {
+      existingUser.photo = "";
+    }
+
+    if (updates.password) {
+      const hashedPassword = await hashPassword(updates.password);
+      existingUser.password = hashedPassword;
+    }
+
+    await existingUser.save();
+
+    if (oldUserPhoto && photoUrl !== oldUserPhoto) {
+      await deleteFromCloudinary(oldUserPhoto);
+    }
+
+    if (existingUser) {
+      // invalidate old cache and replace
+      deleteUserCache(userId);
+      setUserCache(userId, {
+        id: existingUser.id,
+        name: existingUser.name,
+        username: existingUser.username,
+        photo: existingUser.photo,
+      });
+    }
+
+    return existingUser;
+  } catch (err) {
+    throw new AppError("Could not save data", httpStatus.INTERNAL_SERVER_ERROR);
+  }
 }
+
+const hashPassword = async (password: string) => {
+  return await bycrypt.hash(password, 10);
+};

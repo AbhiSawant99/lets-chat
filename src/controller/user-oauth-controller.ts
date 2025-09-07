@@ -25,6 +25,7 @@ export const googleUserSuccessfulLogin = catchAsync(
       {
         id: existingUser._id.toString(),
         displayName: existingUser.name,
+        username: existingUser.username || "",
         email: existingUser.email,
         photo: existingUser.photo || "",
       },

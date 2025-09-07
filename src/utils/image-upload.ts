@@ -1,5 +1,6 @@
 import multer from "multer";
 import { v2 as cloudinary } from "cloudinary";
+import { AppError } from "@/AppError";
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -25,4 +26,30 @@ export function uploadToCloudinary(
     );
     stream.end(buffer);
   });
+}
+
+export async function deleteFromCloudinary(publicUrl: string) {
+  const publicIdClean = getPublicIdFromUrl(publicUrl);
+  return new Promise((resolve, reject) => {
+    cloudinary.uploader.destroy(
+      publicIdClean,
+      { invalidate: true },
+      (error, result) => {
+        if (error) reject(error);
+        else resolve(result);
+      }
+    );
+  });
+}
+
+function getPublicIdFromUrl(url: string): string {
+  const parts = url.split("/upload/");
+  if (parts.length < 2) throw new AppError("Invalid Cloudinary URL");
+
+  const path = parts[1].split("/");
+  path.shift();
+  const fullId = path.join("/");
+
+  // Strip extension (.jpg, .png, etc.)
+  return fullId.replace(/\.[^/.]+$/, "");
 }

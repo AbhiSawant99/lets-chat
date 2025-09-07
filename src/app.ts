@@ -22,6 +22,7 @@ import chatRouter from "@/routes/chat-routes";
 import { CORSMiddleware } from "@/middlewares/http-middleware";
 import { webSocketMiddleware } from "@/middlewares/socket-middleware";
 import { googlePassportMiddleware } from "@/middlewares/passport-middleware";
+import userRoutes from "@/routes/user-routes";
 
 const PORT = process.env.PORT || 3000;
 const dbURI: string = process.env.MONGODB_URI ?? "";
@@ -92,6 +93,8 @@ app.get("/profile", verifyJWT, (req: Request, res: Response) => {
 app.use("/auth", authRoutes);
 
 app.use("/chat", chatRouter);
+
+app.use("/user", userRoutes);
 
 io.use(webSocketMiddleware);
 
