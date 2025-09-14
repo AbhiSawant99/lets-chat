@@ -98,6 +98,13 @@ app.use("/user", userRoutes);
 
 io.use(webSocketMiddleware);
 
+app.get("/ping", (req, res) => {
+  // Simple health check / wake-up route for Render.
+  // Used by the frontend to "ping" the backend and prevent cold starts
+  // before redirecting the user to OAuth or other critical flows.
+  res.status(200).json({ message: "pong" });
+});
+
 socketController(io);
 
 app.use((error: AppError, req: Request, res: Response, next: NextFunction) => {
