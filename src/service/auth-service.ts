@@ -46,12 +46,17 @@ export const getUser = (token: string): AuthUser | null => {
 
 export const verifyJWT = catchAsync(
   (req: Request, res: Response, next: NextFunction) => {
-    const token = req.cookies?.token; // Get token from cookies
+    const token = req.cookies?.token;
     logger.debug("Verifying JWT...");
 
     if (!token) {
       logger.warn("No token provided");
-      throw new AppError("Unauthorized user", httpStatus.UNAUTHORIZED);
+      res.clearCookie("token", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      });
+      return next(new AppError("Unauthorized user", httpStatus.UNAUTHORIZED));
     }
 
     try {
@@ -62,11 +67,19 @@ export const verifyJWT = catchAsync(
       req.user = decoded;
       next();
     } catch (err: unknown) {
+      logger.error(err);
+
+      res.clearCookie("token", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      });
+
       if (err instanceof TokenExpiredError) {
-        next(new AppError("TokenExpired", httpStatus.UNAUTHORIZED));
+        return next(new AppError("TokenExpired", httpStatus.UNAUTHORIZED));
       }
 
-      next(new AppError("AuthenticationError", httpStatus.UNAUTHORIZED));
+      return next(new AppError("AuthenticationError", httpStatus.UNAUTHORIZED));
     }
   }
 );
